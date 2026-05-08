@@ -1,5 +1,9 @@
 #include "SampleController.h"
 
+static constexpr auto kErrDupId   = "이미 존재하는 시료 ID입니다.";
+static constexpr auto kErrDupName = "이미 존재하는 시료 이름입니다.";
+static constexpr auto kMsgSaved   = "시료가 등록되었습니다.";
+
 SampleController::SampleController(ISampleRepository& repo, ISampleView& view)
     : repo_(repo), view_(view)
 {}
@@ -8,22 +12,23 @@ void SampleController::registerSample() {
     Sample sample = view_.promptSampleInput();
 
     if (repo_.existsId(sample.id)) {
-        view_.showError("이미 존재하는 ID입니다: " + sample.id);
+        view_.showError(kErrDupId);
         return;
     }
 
     if (repo_.existsName(sample.name)) {
-        view_.showError("이미 존재하는 이름입니다: " + sample.name);
+        view_.showError(kErrDupName);
         return;
     }
 
-    if (sample.yieldRate <= 0.0 || sample.yieldRate > 1.0) {
-        view_.showError("수율은 0 초과 1 이하 값이어야 합니다.");
+    auto error = sample.validate();
+    if (!error.empty()) {
+        view_.showError(error);
         return;
     }
 
     repo_.save(sample);
-    view_.showSuccess("시료가 등록되었습니다: " + sample.name);
+    view_.showSuccess(kMsgSaved);
 }
 
 void SampleController::listSamples() {

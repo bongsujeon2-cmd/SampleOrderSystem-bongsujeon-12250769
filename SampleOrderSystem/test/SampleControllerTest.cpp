@@ -45,7 +45,7 @@ public:
 // -----------------------------------------------------------------------
 
 /// 테스트용 Sample 객체 생성 헬퍼
-static Sample makeControllerTestSample(
+static Sample makeSample(
     const std::string& id,
     const std::string& name,
     int    avgProductionTime = 5,
@@ -83,7 +83,7 @@ protected:
 // -----------------------------------------------------------------------
 TEST_F(SampleControllerTest, RegisterSample_ValidInput_SavesAndShowsSuccess)
 {
-    Sample input = makeControllerTestSample("S-001", "AlGaN", 5, 0.9, 100);
+    Sample input = makeSample("S-001", "AlGaN", 5, 0.9, 100);
 
     EXPECT_CALL(mockView, promptSampleInput())
         .Times(1)
@@ -118,7 +118,7 @@ TEST_F(SampleControllerTest, RegisterSample_ValidInput_SavesAndShowsSuccess)
 // -----------------------------------------------------------------------
 TEST_F(SampleControllerTest, RegisterSample_DuplicateId_ShowsErrorAndDoesNotSave)
 {
-    Sample input = makeControllerTestSample("S-001", "AlGaN", 5, 0.9, 100);
+    Sample input = makeSample("S-001", "AlGaN", 5, 0.9, 100);
 
     EXPECT_CALL(mockView, promptSampleInput())
         .Times(1)
@@ -153,7 +153,7 @@ TEST_F(SampleControllerTest, RegisterSample_DuplicateId_ShowsErrorAndDoesNotSave
 // -----------------------------------------------------------------------
 TEST_F(SampleControllerTest, RegisterSample_DuplicateName_ShowsErrorAndDoesNotSave)
 {
-    Sample input = makeControllerTestSample("S-002", "AlGaN", 5, 0.9, 100);
+    Sample input = makeSample("S-002", "AlGaN", 5, 0.9, 100);
 
     EXPECT_CALL(mockView, promptSampleInput())
         .Times(1)
@@ -187,7 +187,7 @@ TEST_F(SampleControllerTest, RegisterSample_DuplicateName_ShowsErrorAndDoesNotSa
 // -----------------------------------------------------------------------
 TEST_F(SampleControllerTest, RegisterSample_YieldRateZero_ShowsErrorAndDoesNotSave)
 {
-    Sample input = makeControllerTestSample("S-003", "GaN", 5, 0.0, 100);
+    Sample input = makeSample("S-003", "GaN", 5, 0.0, 100);
 
     EXPECT_CALL(mockView, promptSampleInput())
         .Times(1)
@@ -221,7 +221,7 @@ TEST_F(SampleControllerTest, RegisterSample_YieldRateZero_ShowsErrorAndDoesNotSa
 // -----------------------------------------------------------------------
 TEST_F(SampleControllerTest, RegisterSample_YieldRateExceedsOne_ShowsErrorAndDoesNotSave)
 {
-    Sample input = makeControllerTestSample("S-004", "SiC", 5, 1.1, 100);
+    Sample input = makeSample("S-004", "SiC", 5, 1.1, 100);
 
     EXPECT_CALL(mockView, promptSampleInput())
         .Times(1)
@@ -255,9 +255,9 @@ TEST_F(SampleControllerTest, RegisterSample_YieldRateExceedsOne_ShowsErrorAndDoe
 TEST_F(SampleControllerTest, ListSamples_FindAllResult_PassedToShowSampleList)
 {
     std::vector<Sample> samples = {
-        makeControllerTestSample("S-001", "AlGaN", 5, 0.9, 100),
-        makeControllerTestSample("S-002", "GaN",   3, 0.85, 50),
-        makeControllerTestSample("S-003", "SiC",   7, 0.95, 200),
+        makeSample("S-001", "AlGaN", 5, 0.9, 100),
+        makeSample("S-002", "GaN",   3, 0.85, 50),
+        makeSample("S-003", "SiC",   7, 0.95, 200),
     };
 
     EXPECT_CALL(mockRepo, findAll())
@@ -280,8 +280,8 @@ TEST_F(SampleControllerTest, SearchSamples_KeywordFromView_PassedToRepoAndResult
 {
     const std::string keyword = "GaN";
     std::vector<Sample> results = {
-        makeControllerTestSample("S-001", "AlGaN", 5, 0.9, 100),
-        makeControllerTestSample("S-002", "GaN",   3, 0.85, 50),
+        makeSample("S-001", "AlGaN", 5, 0.9, 100),
+        makeSample("S-002", "GaN",   3, 0.85, 50),
     };
 
     EXPECT_CALL(mockView, promptKeyword())
@@ -298,4 +298,38 @@ TEST_F(SampleControllerTest, SearchSamples_KeywordFromView_PassedToRepoAndResult
 
     auto controller = makeController();
     controller.searchSamples();
+}
+
+// -----------------------------------------------------------------------
+// TC-08: registerSample() — avgProductionTime=0 (경계값: 0 이하)
+// avgProductionTime=0 → view.showError() 1회 호출, repo.save() 미호출
+// -----------------------------------------------------------------------
+TEST_F(SampleControllerTest, RegisterSample_AvgTimZero_ShowsErrorAndDoesNotSave)
+{
+    Sample input = makeSample("S-005", "InP", 0, 0.9, 0);
+
+    EXPECT_CALL(mockView, promptSampleInput())
+        .Times(1)
+        .WillOnce(Return(input));
+
+    EXPECT_CALL(mockRepo, existsId(Eq(std::string("S-005"))))
+        .Times(1)
+        .WillOnce(Return(false));
+
+    EXPECT_CALL(mockRepo, existsName(Eq(std::string("InP"))))
+        .Times(1)
+        .WillOnce(Return(false));
+
+    // save()는 절대 호출되어서는 안 됨
+    EXPECT_CALL(mockRepo, save(_))
+        .Times(0);
+
+    EXPECT_CALL(mockView, showError(_))
+        .Times(1);
+
+    EXPECT_CALL(mockView, showSuccess(_))
+        .Times(0);
+
+    auto controller = makeController();
+    controller.registerSample();
 }

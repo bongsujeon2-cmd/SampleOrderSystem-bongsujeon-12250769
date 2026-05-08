@@ -62,16 +62,18 @@ static void printTableRow(const Sample& s) {
               << "\n";
 }
 
-void SampleView::showSampleList(const std::vector<Sample>& samples) {
+static void showSampleTable(const std::vector<Sample>& samples) {
     printTableHeader();
     for (const auto& s : samples)
         printTableRow(s);
 }
 
+void SampleView::showSampleList(const std::vector<Sample>& samples) {
+    showSampleTable(samples);
+}
+
 void SampleView::showSearchResult(const std::vector<Sample>& results) {
-    printTableHeader();
-    for (const auto& s : results)
-        printTableRow(s);
+    showSampleTable(results);
 }
 
 void SampleView::showError(const std::string& msg) {
