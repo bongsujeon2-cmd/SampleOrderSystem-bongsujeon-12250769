@@ -50,7 +50,7 @@ public:
     MOCK_METHOD(void, enqueue, (const ProductionJob&), (override));
 };
 
-class MockTimeProvider : public ITimeProvider {
+class MockTimeProviderGMock : public ITimeProvider {
 public:
     MOCK_METHOD(time_t, now, (), (const, override));
     MOCK_METHOD(std::string, nowIso8601, (), (const, override));
@@ -115,7 +115,7 @@ protected:
     MockSampleRepository     mockSampleRepo;
     MockOrderRepository      mockOrderRepo;
     MockProductionRepository mockProductionRepo;
-    MockTimeProvider         mockTime;
+    MockTimeProviderGMock    mockTime;
     MockOrderView            mockView;
 
     OrderController makeController() {

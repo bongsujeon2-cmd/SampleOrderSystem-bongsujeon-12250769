@@ -3,12 +3,13 @@
 #include "../Repository/IOrderRepository.h"
 #include "../Repository/IProductionRepository.h"
 #include "ITimeProvider.h"
+#include "IProductionService.h"
 
-class ProductionService {
+class ProductionService : public IProductionService {
 public:
     ProductionService(ISampleRepository&, IOrderRepository&,
                       IProductionRepository&, ITimeProvider&);
-    void checkAndComplete();
+    void checkAndComplete() override;
 private:
     ISampleRepository&     sampleRepo_;
     IOrderRepository&      orderRepo_;

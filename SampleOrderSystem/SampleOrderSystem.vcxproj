@@ -147,6 +147,8 @@
     <ClCompile Include="Model\Service\ProductionService.cpp" />
     <ClCompile Include="View\SampleView.cpp" />
     <ClCompile Include="View\OrderView.cpp" />
+    <ClCompile Include="View\ProductionLineView.cpp" />
+    <ClCompile Include="Controller\ProductionLineController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Controller\SampleController.h" />
@@ -169,6 +171,10 @@
     <ClInclude Include="View\ISampleView.h" />
     <ClInclude Include="View\OrderView.h" />
     <ClInclude Include="View\SampleView.h" />
+    <ClInclude Include="View\IProductionLineView.h" />
+    <ClInclude Include="View\ProductionLineView.h" />
+    <ClInclude Include="Model\Service\IProductionService.h" />
+    <ClInclude Include="Controller\ProductionLineController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

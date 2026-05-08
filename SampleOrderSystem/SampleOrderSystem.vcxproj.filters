@@ -80,6 +80,12 @@
     <ClCompile Include="View\OrderView.cpp">
       <Filter>View</Filter>
     </ClCompile>
+    <ClCompile Include="View\ProductionLineView.cpp">
+      <Filter>View</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\ProductionLineController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json.hpp">
@@ -141,6 +147,18 @@
     </ClInclude>
     <ClInclude Include="View\OrderView.h">
       <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\IProductionLineView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\ProductionLineView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Service\IProductionService.h">
+      <Filter>Model\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\ProductionLineController.h">
+      <Filter>Controller</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -49,7 +49,7 @@ public:
     MOCK_METHOD(void,            enqueue,   (const ProductionJob&),    (override));
 };
 
-class MockTimeProvider : public ITimeProvider {
+class MockTimeProviderGMock : public ITimeProvider {
 public:
     MOCK_METHOD(time_t,      now,       (), (const, override));
     MOCK_METHOD(std::string, nowIso8601,(), (const, override));
@@ -117,7 +117,7 @@ protected:
     MockSampleRepository     mockSample;
     MockOrderRepository      mockOrder;
     MockProductionRepository mockProduction;
-    MockTimeProvider         mockTime;
+    MockTimeProviderGMock    mockTime;
 
     ProductionService makeService() {
         return ProductionService(mockSample, mockOrder, mockProduction, mockTime);
