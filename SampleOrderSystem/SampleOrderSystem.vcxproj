@@ -143,6 +143,7 @@
     <ClCompile Include="test\OrderControllerTest.cpp" />
     <ClCompile Include="test\ProductionRepositoryTest.cpp" />
     <ClCompile Include="test\ProductionServiceTest.cpp" />
+    <ClCompile Include="Model\Service\ProductionService.cpp" />
     <ClCompile Include="View\SampleView.cpp" />
     <ClCompile Include="View\OrderView.cpp" />
   </ItemGroup>
@@ -160,6 +161,7 @@
     <ClInclude Include="Model\Repository\JsonSampleRepository.h" />
     <ClInclude Include="Model\Repository\JsonProductionRepository.h" />
     <ClInclude Include="Model\Service\ITimeProvider.h" />
+    <ClInclude Include="Model\Service\ProductionService.h" />
     <ClInclude Include="Model\Service\RealTimeProvider.h" />
     <ClInclude Include="Model\Service\MockTimeProvider.h" />
     <ClInclude Include="View\IOrderView.h" />

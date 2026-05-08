@@ -62,6 +62,9 @@
     <ClCompile Include="test\ProductionServiceTest.cpp">
       <Filter>테스트 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Model\Service\ProductionService.cpp">
+      <Filter>Model\Service</Filter>
+    </ClCompile>
     <ClCompile Include="View\SampleView.cpp">
       <Filter>View</Filter>
     </ClCompile>
@@ -119,6 +122,9 @@
       <Filter>Model\Repository</Filter>
     </ClInclude>
     <ClInclude Include="Model\Service\ITimeProvider.h">
+      <Filter>Model\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Service\ProductionService.h">
       <Filter>Model\Service</Filter>
     </ClInclude>
     <ClInclude Include="Model\Service\RealTimeProvider.h">
