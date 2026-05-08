@@ -26,8 +26,4 @@ private:
     IProductionRepository& productionRepo_;
     ITimeProvider&         timeProvider_;
     IOrderView&            view_;
-
-    static constexpr auto kErrUnknownSample = "등록되지 않은 시료 ID입니다.";
-    static constexpr auto kErrInvalidQty    = "주문 수량은 1 이상이어야 합니다.";
-    static constexpr auto kMsgOrderPlaced   = "주문이 접수되었습니다.";
 };

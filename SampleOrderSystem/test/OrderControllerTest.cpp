@@ -11,6 +11,7 @@
 #include "../Model/Service/ITimeProvider.h"
 #include "../View/IOrderView.h"
 #include "../Controller/OrderController.h"
+#include <cmath>
 
 using ::testing::Return;
 using ::testing::ReturnArg;
@@ -57,9 +58,10 @@ class MockOrderView : public IOrderView {
 public:
     MOCK_METHOD(void, showSubMenu, (), (override));
     MOCK_METHOD(int, getSubMenuChoice, (), (override));
-    MOCK_METHOD((std::tuple<std::string, std::string, int>), promptOrderInput, (), (override));
+    MOCK_METHOD(OrderInput, promptOrderInput, (), (override));
     MOCK_METHOD(void, showReservedOrders, (const std::vector<Order>&, const std::vector<Sample>&), (override));
     MOCK_METHOD(int, promptOrderSelect, (int), (override));
+    MOCK_METHOD(int, promptApproveOrReject, (), (override));
     MOCK_METHOD(void, showApprovalResult, (OrderStatus), (override));
     MOCK_METHOD(void, showError, (const std::string&), (override));
     MOCK_METHOD(void, showSuccess, (const std::string&), (override));
@@ -133,7 +135,7 @@ TEST_F(OrderControllerTest, PlaceOrder_ValidSampleId_CreatesReservedOrder)
 
     EXPECT_CALL(mockView, promptOrderInput())
         .Times(1)
-        .WillOnce(Return(std::make_tuple(sampleId, customerName, quantity)));
+        .WillOnce(Return(OrderInput{sampleId, customerName, quantity}));
 
     EXPECT_CALL(mockSampleRepo, existsId(Eq(sampleId)))
         .Times(1)
@@ -178,7 +180,7 @@ TEST_F(OrderControllerTest, PlaceOrder_UnregisteredSampleId_ShowsError)
 
     EXPECT_CALL(mockView, promptOrderInput())
         .Times(1)
-        .WillOnce(Return(std::make_tuple(sampleId, customerName, quantity)));
+        .WillOnce(Return(OrderInput{sampleId, customerName, quantity}));
 
     EXPECT_CALL(mockSampleRepo, existsId(Eq(sampleId)))
         .Times(1)
@@ -208,7 +210,7 @@ TEST_F(OrderControllerTest, PlaceOrder_ZeroQuantity_ShowsError)
 
     EXPECT_CALL(mockView, promptOrderInput())
         .Times(1)
-        .WillOnce(Return(std::make_tuple(sampleId, customerName, quantity)));
+        .WillOnce(Return(OrderInput{sampleId, customerName, quantity}));
 
     EXPECT_CALL(mockOrderRepo, create(_))
         .Times(0);
@@ -234,7 +236,7 @@ TEST_F(OrderControllerTest, PlaceOrder_NegativeQuantity_ShowsError)
 
     EXPECT_CALL(mockView, promptOrderInput())
         .Times(1)
-        .WillOnce(Return(std::make_tuple(sampleId, customerName, quantity)));
+        .WillOnce(Return(OrderInput{sampleId, customerName, quantity}));
 
     EXPECT_CALL(mockOrderRepo, create(_))
         .Times(0);
@@ -506,4 +508,82 @@ TEST_F(OrderControllerTest, ListReservedOrders_CallsFindByStatusReserved)
 
     auto controller = makeController();
     controller.listReservedOrders();
+}
+
+// -----------------------------------------------------------------------
+// TC-11: approveOrder() — 생산량 계산 검증 (yieldRate=0.8, shortage=10)
+// actualQty = ceil(10 / (0.8 * 0.9)) = ceil(10 / 0.72) = ceil(13.888...) = 14
+// -----------------------------------------------------------------------
+TEST_F(OrderControllerTest, ApproveOrder_StockInsufficient_DifferentYieldRate)
+{
+    const std::string orderId   = "ORD-011";
+    const std::string sampleId  = "S-011";
+    const int         stock     = 0;
+    const int         quantity  = 10;   // shortage = 10 - 0 = 10
+    const double      yield     = 0.8;
+    const int         avgTime   = 5;
+    const int         expectedActualQty = 14; // ceil(10 / (0.8 * 0.9)) = ceil(10/0.72) = 14
+
+    Order  order  = makeOrder(orderId, sampleId, quantity, OrderStatus::RESERVED);
+    Sample sample = makeSample(sampleId, stock, yield, avgTime);
+
+    EXPECT_CALL(mockOrderRepo, findById(Eq(orderId)))
+        .Times(1)
+        .WillOnce(Return(std::make_optional(order)));
+
+    EXPECT_CALL(mockSampleRepo, findById(Eq(sampleId)))
+        .Times(1)
+        .WillOnce(Return(std::make_optional(sample)));
+
+    EXPECT_CALL(mockOrderRepo, update(_))
+        .Times(1)
+        .WillOnce(Return(true));
+
+    ProductionJob capturedJob;
+    EXPECT_CALL(mockProductionRepo, enqueue(_))
+        .Times(1)
+        .WillOnce([&capturedJob](const ProductionJob& job) {
+            capturedJob = job;
+        });
+
+    EXPECT_CALL(mockView, showApprovalResult(_))
+        .Times(1);
+
+    auto controller = makeController();
+    controller.approveOrder(orderId);
+
+    EXPECT_EQ(capturedJob.actualProductionQty, expectedActualQty);
+}
+
+// -----------------------------------------------------------------------
+// TC-12: rejectOrder() — sampleRepo_.update() 미호출 검증
+// -----------------------------------------------------------------------
+TEST_F(OrderControllerTest, RejectOrder_SampleRepoNotUpdated)
+{
+    const std::string orderId  = "ORD-012";
+    const std::string sampleId = "S-001";
+    const int         quantity = 10;
+
+    Order order = makeOrder(orderId, sampleId, quantity, OrderStatus::RESERVED);
+
+    EXPECT_CALL(mockOrderRepo, findById(Eq(orderId)))
+        .Times(1)
+        .WillOnce(Return(std::make_optional(order)));
+
+    EXPECT_CALL(mockOrderRepo, update(_))
+        .Times(1)
+        .WillOnce(Return(true));
+
+    EXPECT_CALL(mockProductionRepo, enqueue(_))
+        .Times(0);
+
+    // rejectOrder 시 sampleRepo_.update() 호출 없음
+    EXPECT_CALL(mockSampleRepo, update(_))
+        .Times(0);
+
+    EXPECT_CALL(mockView, showApprovalResult(Eq(OrderStatus::REJECTED)))
+        .Times(1);
+
+    auto controller = makeController();
+    controller.rejectOrder(orderId);
 }

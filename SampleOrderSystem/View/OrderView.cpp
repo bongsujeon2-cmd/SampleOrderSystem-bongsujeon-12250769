@@ -20,20 +20,18 @@ int OrderView::getSubMenuChoice()
     return choice;
 }
 
-std::tuple<std::string, std::string, int> OrderView::promptOrderInput()
+OrderInput OrderView::promptOrderInput()
 {
-    std::string sampleId;
-    std::string customerName;
-    int quantity = 0;
+    OrderInput input;
 
     std::cout << "  시료 ID: ";
-    std::cin >> sampleId;
+    std::cin >> input.sampleId;
     std::cout << "  고객명: ";
-    std::cin >> customerName;
+    std::cin >> input.customerName;
     std::cout << "  수량: ";
-    std::cin >> quantity;
+    std::cin >> input.quantity;
 
-    return { sampleId, customerName, quantity };
+    return input;
 }
 
 void OrderView::showReservedOrders(const std::vector<Order>& orders, const std::vector<Sample>& samples)
@@ -43,7 +41,6 @@ void OrderView::showReservedOrders(const std::vector<Order>& orders, const std::
         return;
     }
 
-    std::cout << "\n  %-4s %-12s %-20s %-10s %-6s %-20s\n";
     std::cout << "  " << std::left
               << std::setw(4)  << "No."
               << std::setw(12) << "주문ID"
@@ -83,6 +80,16 @@ int OrderView::promptOrderSelect(int maxIndex)
     std::cin >> sel;
     if (sel < 0 || sel > maxIndex) return 0;
     return sel;
+}
+
+int OrderView::promptApproveOrReject()
+{
+    int action = 0;
+    std::cout << "  [1] 승인  [2] 거절  [0] 취소\n";
+    std::cout << "  선택: ";
+    std::cin >> action;
+    if (action < 0 || action > 2) return 0;
+    return action;
 }
 
 void OrderView::showApprovalResult(OrderStatus newStatus)

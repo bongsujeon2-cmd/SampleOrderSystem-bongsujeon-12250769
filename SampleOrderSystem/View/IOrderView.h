@@ -3,16 +3,22 @@
 #include "../Model/Domain/Sample.h"
 #include <vector>
 #include <string>
-#include <tuple>
+
+struct OrderInput {
+    std::string sampleId;
+    std::string customerName;
+    int         quantity = 0;
+};
 
 class IOrderView {
 public:
     virtual ~IOrderView() = default;
     virtual void showSubMenu() = 0;
     virtual int  getSubMenuChoice() = 0;
-    virtual std::tuple<std::string, std::string, int> promptOrderInput() = 0;
+    virtual OrderInput promptOrderInput() = 0;
     virtual void showReservedOrders(const std::vector<Order>&, const std::vector<Sample>&) = 0;
     virtual int  promptOrderSelect(int maxIndex) = 0;
+    virtual int  promptApproveOrReject() = 0;
     virtual void showApprovalResult(OrderStatus newStatus) = 0;
     virtual void showError(const std::string& msg) = 0;
     virtual void showSuccess(const std::string& msg) = 0;
