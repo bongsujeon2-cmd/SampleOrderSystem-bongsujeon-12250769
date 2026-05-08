@@ -68,11 +68,23 @@ public:
     }
     static JsonValue parse(const std::string& text) { size_t i = 0; return parseValue(text, i); }
     static JsonValue parseFile(const std::string& path) {
-        std::ifstream file(path);
-        if (!file.is_open()) return JsonValue{};
-        std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-        if (content.empty()) return JsonValue{};
-        return parse(content);
+        try {
+            std::ifstream file(path);
+            if (!file.is_open()) return JsonValue{};
+            std::string content((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+            if (content.empty()) return JsonValue{};
+            // UTF-8 BOM(\xEF\xBB\xBF) 제거 (Windows에서 파일 작성 시 추가될 수 있음)
+            if (content.size() >= 3 &&
+                (unsigned char)content[0] == 0xEF &&
+                (unsigned char)content[1] == 0xBB &&
+                (unsigned char)content[2] == 0xBF) {
+                content = content.substr(3);
+            }
+            if (content.empty()) return JsonValue{};
+            return parse(content);
+        } catch (...) {
+            return JsonValue{};  // 파싱 실패 시 null 반환
+        }
     }
     std::string stringify(int indent = -1) const { std::ostringstream ss; toStream(ss, indent, 0); return ss.str(); }
     bool saveToFile(const std::string& path, int indent = 2) const {
