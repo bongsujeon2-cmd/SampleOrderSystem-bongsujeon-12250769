@@ -94,6 +94,9 @@
     <ClInclude Include="Model\Repository\JsonSampleRepository.h">
       <Filter>Model\Repository</Filter>
     </ClInclude>
+    <ClInclude Include="Model\Repository\JsonProductionRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
     <ClInclude Include="View\ISampleView.h">
       <Filter>View</Filter>
     </ClInclude>

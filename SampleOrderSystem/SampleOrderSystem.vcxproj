@@ -157,6 +157,7 @@
     <ClInclude Include="Model\Repository\IProductionRepository.h" />
     <ClInclude Include="Model\Repository\JsonOrderRepository.h" />
     <ClInclude Include="Model\Repository\JsonSampleRepository.h" />
+    <ClInclude Include="Model\Repository\JsonProductionRepository.h" />
     <ClInclude Include="Model\Service\ITimeProvider.h" />
     <ClInclude Include="Model\Service\RealTimeProvider.h" />
     <ClInclude Include="Model\Service\MockTimeProvider.h" />
