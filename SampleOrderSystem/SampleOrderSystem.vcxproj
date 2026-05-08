@@ -142,6 +142,7 @@
     <ClCompile Include="test\OrderRepositoryTest.cpp" />
     <ClCompile Include="test\OrderControllerTest.cpp" />
     <ClCompile Include="test\ProductionRepositoryTest.cpp" />
+    <ClCompile Include="test\ProductionServiceTest.cpp" />
     <ClCompile Include="View\SampleView.cpp" />
     <ClCompile Include="View\OrderView.cpp" />
   </ItemGroup>
