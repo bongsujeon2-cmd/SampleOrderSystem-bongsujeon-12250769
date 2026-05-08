@@ -144,8 +144,11 @@
   <ItemGroup>
     <ClInclude Include="Controller\SampleController.h" />
     <ClInclude Include="json.hpp" />
+    <ClInclude Include="Model\Domain\Order.h" />
     <ClInclude Include="Model\Domain\Sample.h" />
+    <ClInclude Include="Model\Repository\IOrderRepository.h" />
     <ClInclude Include="Model\Repository\ISampleRepository.h" />
+    <ClInclude Include="Model\Repository\JsonOrderRepository.h" />
     <ClInclude Include="Model\Repository\JsonSampleRepository.h" />
     <ClInclude Include="View\ISampleView.h" />
     <ClInclude Include="View\SampleView.h" />

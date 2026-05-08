@@ -61,10 +61,19 @@
     <ClInclude Include="json.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="Model\Domain\Order.h">
+      <Filter>Model\Domain</Filter>
+    </ClInclude>
     <ClInclude Include="Model\Domain\Sample.h">
       <Filter>Model\Domain</Filter>
     </ClInclude>
+    <ClInclude Include="Model\Repository\IOrderRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
     <ClInclude Include="Model\Repository\ISampleRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Repository\JsonOrderRepository.h">
       <Filter>Model\Repository</Filter>
     </ClInclude>
     <ClInclude Include="Model\Repository\JsonSampleRepository.h">
