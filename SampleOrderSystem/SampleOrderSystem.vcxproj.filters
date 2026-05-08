@@ -71,6 +71,9 @@
     <ClCompile Include="test\MonitoringControllerTest.cpp">
       <Filter>테스트 파일</Filter>
     </ClCompile>
+    <ClCompile Include="test\AppControllerTest.cpp">
+      <Filter>테스트 파일</Filter>
+    </ClCompile>
     <ClCompile Include="Model\Service\ProductionService.cpp">
       <Filter>Model\Service</Filter>
     </ClCompile>
