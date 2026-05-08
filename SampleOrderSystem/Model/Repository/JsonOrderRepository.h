@@ -5,6 +5,7 @@
 #include <string>
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 
 class JsonOrderRepository : public IOrderRepository {
 public:
@@ -14,13 +15,13 @@ public:
         load();
     }
 
-    std::string create(Order order) override {
-        std::ostringstream oss;
-        oss << "ORD-" << std::setw(3) << std::setfill('0') << nextOrdNum_++;
-        order.id = oss.str();
-        store_[order.id] = order;
-        flush();
-        return order.id;
+    std::string create(const Order& order) override {
+        Order o = order;
+        o.id = generateId();
+        store_[o.id] = o;
+        if (!flush())
+            throw std::runtime_error("파일 저장 실패");
+        return o.id;
     }
 
     std::optional<Order> findById(const std::string& id) const override {
@@ -49,14 +50,20 @@ public:
     bool update(const Order& order) override {
         if (!store_.count(order.id)) return false;
         store_[order.id] = order;
-        flush();
+        flush(); // flush() const: 설계상 실패 시 로그 처리 또는 상위 레이어에서 처리
         return true;
     }
 
 private:
-    std::string              filePath_;
+    std::string                  filePath_;
     std::map<std::string, Order> store_;
-    int                      nextOrdNum_;
+    int                          nextOrdNum_;
+
+    std::string generateId() {
+        std::ostringstream ss;
+        ss << "ORD-" << std::setw(3) << std::setfill('0') << nextOrdNum_++;
+        return ss.str();
+    }
 
     void load() {
         JsonValue root = JsonValue::parseFile(filePath_);
@@ -64,6 +71,8 @@ private:
 
         if (root.contains("nextOrdNum"))
             nextOrdNum_ = static_cast<int>(root.at("nextOrdNum").getInt());
+
+        if (nextOrdNum_ < 1) nextOrdNum_ = 1;
 
         if (!root.contains("orders")) return;
         const auto& arr = root.at("orders");
@@ -74,6 +83,7 @@ private:
         }
     }
 
+    // flush()는 non-const メンバを変更しないが、設計上 mutable 化せず const のまま維持
     bool flush() const {
         JsonValue root;
         root["nextOrdNum"] = JsonValue(nextOrdNum_);
@@ -84,13 +94,33 @@ private:
         return root.saveToFile(filePath_);
     }
 
+    static std::string statusToString(OrderStatus status) {
+        switch (status) {
+        case OrderStatus::RESERVED:  return "RESERVED";
+        case OrderStatus::PRODUCING: return "PRODUCING";
+        case OrderStatus::CONFIRMED: return "CONFIRMED";
+        case OrderStatus::RELEASE:   return "RELEASE";
+        case OrderStatus::REJECTED:  return "REJECTED";
+        default: throw std::invalid_argument("Unknown OrderStatus");
+        }
+    }
+
+    static OrderStatus statusFromString(const std::string& s) {
+        if (s == "RESERVED")  return OrderStatus::RESERVED;
+        if (s == "PRODUCING") return OrderStatus::PRODUCING;
+        if (s == "CONFIRMED") return OrderStatus::CONFIRMED;
+        if (s == "RELEASE")   return OrderStatus::RELEASE;
+        if (s == "REJECTED")  return OrderStatus::REJECTED;
+        throw std::invalid_argument("Unknown OrderStatus: " + s);
+    }
+
     static JsonValue orderToJson(const Order& o) {
         JsonValue j;
         j["id"]           = JsonValue(o.id);
         j["sampleId"]     = JsonValue(o.sampleId);
         j["customerName"] = JsonValue(o.customerName);
         j["quantity"]     = JsonValue(o.quantity);
-        j["status"]       = JsonValue(toString(o.status));
+        j["status"]       = JsonValue(statusToString(o.status));
         j["createdAt"]    = JsonValue(o.createdAt);
         return j;
     }
@@ -101,7 +131,7 @@ private:
         o.sampleId     = j.at("sampleId").getString();
         o.customerName = j.at("customerName").getString();
         o.quantity     = static_cast<int>(j.at("quantity").getInt());
-        o.status       = orderStatusFromString(j.at("status").getString());
+        o.status       = statusFromString(j.at("status").getString());
         o.createdAt    = j.at("createdAt").getString();
         return o;
     }

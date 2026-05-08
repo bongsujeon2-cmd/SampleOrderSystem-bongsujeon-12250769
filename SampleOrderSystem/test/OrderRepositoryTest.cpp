@@ -239,3 +239,37 @@ TEST_F(OrderRepositoryTest, Update_NonExistentId_ReturnsFalse)
     ghost.id = "ORD-999";
     EXPECT_FALSE(repo.update(ghost));
 }
+
+// -----------------------------------------------------------------------
+// TC-12: 저장 후 reload → findById로 전체 필드 보존 검증
+// -----------------------------------------------------------------------
+TEST_F(OrderRepositoryTest, Persistence_AfterReload_AllFieldsPreserved)
+{
+    const std::string expectedSampleId     = "S-099";
+    const std::string expectedCustomerName = "영속성고객";
+    const int         expectedQuantity     = 42;
+    const OrderStatus expectedStatus       = OrderStatus::CONFIRMED;
+    const std::string expectedCreatedAt    = "2026-05-08T12:34:56";
+
+    std::string savedId;
+    {
+        JsonOrderRepository repo(tempFilePath);
+        Order o = makeOrder(expectedSampleId, expectedCustomerName,
+                            expectedQuantity, expectedStatus, expectedCreatedAt);
+        savedId = repo.create(o);
+        EXPECT_EQ(savedId, "ORD-001");
+    }
+
+    // 같은 파일로 새 인스턴스를 생성해 reload
+    {
+        JsonOrderRepository repo(tempFilePath);
+        auto result = repo.findById(savedId);
+        ASSERT_TRUE(result.has_value());
+        EXPECT_EQ(result->id,           savedId);
+        EXPECT_EQ(result->sampleId,     expectedSampleId);
+        EXPECT_EQ(result->customerName, expectedCustomerName);
+        EXPECT_EQ(result->quantity,     expectedQuantity);
+        EXPECT_EQ(result->status,       expectedStatus);
+        EXPECT_EQ(result->createdAt,    expectedCreatedAt);
+    }
+}

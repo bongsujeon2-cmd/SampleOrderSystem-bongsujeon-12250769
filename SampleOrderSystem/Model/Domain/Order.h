@@ -10,26 +10,6 @@ enum class OrderStatus {
     REJECTED
 };
 
-inline std::string toString(OrderStatus status) {
-    switch (status) {
-    case OrderStatus::RESERVED:  return "RESERVED";
-    case OrderStatus::PRODUCING: return "PRODUCING";
-    case OrderStatus::CONFIRMED: return "CONFIRMED";
-    case OrderStatus::RELEASE:   return "RELEASE";
-    case OrderStatus::REJECTED:  return "REJECTED";
-    default:                     return "RESERVED";
-    }
-}
-
-inline OrderStatus orderStatusFromString(const std::string& s) {
-    if (s == "RESERVED")  return OrderStatus::RESERVED;
-    if (s == "PRODUCING") return OrderStatus::PRODUCING;
-    if (s == "CONFIRMED") return OrderStatus::CONFIRMED;
-    if (s == "RELEASE")   return OrderStatus::RELEASE;
-    if (s == "REJECTED")  return OrderStatus::REJECTED;
-    throw std::invalid_argument("Unknown OrderStatus: " + s);
-}
-
 struct Order {
     std::string id;
     std::string sampleId;
@@ -49,5 +29,13 @@ struct Order {
 
     bool operator!=(const Order& other) const {
         return !(*this == other);
+    }
+
+    /// 도메인 유효성 검사. 오류 메시지 반환; 유효하면 빈 문자열.
+    std::string validate() const {
+        if (quantity <= 0)      return "주문 수량은 1 이상이어야 합니다.";
+        if (sampleId.empty())   return "시료 ID가 비어 있습니다.";
+        if (customerName.empty()) return "고객명이 비어 있습니다.";
+        return "";
     }
 };
