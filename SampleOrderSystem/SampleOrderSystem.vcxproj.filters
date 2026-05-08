@@ -86,7 +86,13 @@
     <ClCompile Include="View\ProductionLineView.cpp">
       <Filter>View</Filter>
     </ClCompile>
+    <ClCompile Include="View\ShipmentView.cpp">
+      <Filter>View</Filter>
+    </ClCompile>
     <ClCompile Include="Controller\ProductionLineController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\ShipmentController.cpp">
       <Filter>Controller</Filter>
     </ClCompile>
   </ItemGroup>
@@ -161,6 +167,15 @@
       <Filter>Model\Service</Filter>
     </ClInclude>
     <ClInclude Include="Controller\ProductionLineController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="View\IShipmentView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\ShipmentView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\ShipmentController.h">
       <Filter>Controller</Filter>
     </ClInclude>
   </ItemGroup>
