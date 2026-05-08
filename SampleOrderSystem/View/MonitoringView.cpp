@@ -2,6 +2,19 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <cassert>
+
+static void printOrderGroup(const std::string& label, const std::vector<Order>& orders) {
+    std::cout << label << " (" << orders.size() << "건)";
+    if (!orders.empty()) {
+        std::cout << ": ";
+        for (size_t i = 0; i < orders.size(); ++i) {
+            if (i > 0) std::cout << ", ";
+            std::cout << orders[i].id;
+        }
+    }
+    std::cout << "\n";
+}
 
 void MonitoringView::showSubMenu() {
     std::cout << "\n=== 모니터링 ===\n"
@@ -30,26 +43,16 @@ void MonitoringView::showOrderStats(const std::vector<Order>& reserved,
                                     const std::vector<Order>& released) {
     std::cout << "\n=== 주문 현황 ===\n";
 
-    auto printGroup = [](const std::string& label, const std::vector<Order>& orders) {
-        std::cout << label << " (" << orders.size() << "건)";
-        if (!orders.empty()) {
-            std::cout << ": ";
-            for (size_t i = 0; i < orders.size(); ++i) {
-                if (i > 0) std::cout << ", ";
-                std::cout << orders[i].id;
-            }
-        }
-        std::cout << "\n";
-    };
-
-    printGroup("  예약", reserved);
-    printGroup("  생산 중", producing);
-    printGroup("  확정", confirmed);
-    printGroup("  출고", released);
+    printOrderGroup("  예약", reserved);
+    printOrderGroup("  생산 중", producing);
+    printOrderGroup("  확정", confirmed);
+    printOrderGroup("  출고", released);
 }
 
 void MonitoringView::showStockStatus(const std::vector<Sample>& samples,
                                      const std::vector<StockStatus>& statusList) {
+    assert(samples.size() == statusList.size());
+
     std::cout << "\n=== 재고 현황 ===\n"
               << std::left
               << std::setw(12) << "시료ID"
@@ -60,12 +63,10 @@ void MonitoringView::showStockStatus(const std::vector<Sample>& samples,
 
     for (size_t i = 0; i < samples.size(); ++i) {
         std::string statusStr;
-        if (i < statusList.size()) {
-            switch (statusList[i]) {
-                case StockStatus::SURPLUS:  statusStr = "[여유]"; break;
-                case StockStatus::SHORTAGE: statusStr = "[부족]"; break;
-                case StockStatus::DEPLETED: statusStr = "[고갈]"; break;
-            }
+        switch (statusList[i]) {
+            case StockStatus::SURPLUS:  statusStr = "[여유]"; break;
+            case StockStatus::SHORTAGE: statusStr = "[부족]"; break;
+            case StockStatus::DEPLETED: statusStr = "[고갈]"; break;
         }
         std::cout << std::left
                   << std::setw(12) << samples[i].id

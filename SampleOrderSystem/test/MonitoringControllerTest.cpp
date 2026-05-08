@@ -420,3 +420,71 @@ TEST_F(MonitoringControllerTest, ShowStockStatus_RejectedOrdersExcluded)
     // REJECTED 주문은 유효 합계에서 제외 → 합계=0 → currentStock(10) > 0 → SURPLUS
     EXPECT_EQ(capturedStatusList[0], StockStatus::SURPLUS);
 }
+
+// -----------------------------------------------------------------------
+// TC-09: ShowOrderStats_AllEmpty_CallsWithEmptyVectors
+// 주문 없을 때 빈 벡터 4개로 showOrderStats 호출
+// -----------------------------------------------------------------------
+TEST_F(MonitoringControllerTest, ShowOrderStats_AllEmpty_CallsWithEmptyVectors)
+{
+    EXPECT_CALL(mockOrderRepo, findAll())
+        .Times(1)
+        .WillOnce(Return(std::vector<Order>{}));
+
+    std::vector<Order> capturedReserved;
+    std::vector<Order> capturedProducing;
+    std::vector<Order> capturedConfirmed;
+    std::vector<Order> capturedReleased;
+
+    EXPECT_CALL(mockView, showOrderStats(_, _, _, _))
+        .Times(1)
+        .WillOnce([&](const std::vector<Order>& reserved,
+                      const std::vector<Order>& producing,
+                      const std::vector<Order>& confirmed,
+                      const std::vector<Order>& released) {
+            capturedReserved  = reserved;
+            capturedProducing = producing;
+            capturedConfirmed = confirmed;
+            capturedReleased  = released;
+        });
+
+    auto controller = makeController();
+    controller.showOrderStats();
+
+    EXPECT_EQ(capturedReserved.size(),  0u);
+    EXPECT_EQ(capturedProducing.size(), 0u);
+    EXPECT_EQ(capturedConfirmed.size(), 0u);
+    EXPECT_EQ(capturedReleased.size(),  0u);
+}
+
+// -----------------------------------------------------------------------
+// TC-10: ShowStockStatus_NoSamples_CallsShowWithEmptyVectors
+// 시료 없을 때 빈 벡터 2개로 showStockStatus 호출
+// -----------------------------------------------------------------------
+TEST_F(MonitoringControllerTest, ShowStockStatus_NoSamples_CallsShowWithEmptyVectors)
+{
+    EXPECT_CALL(mockSampleRepo, findAll())
+        .Times(1)
+        .WillOnce(Return(std::vector<Sample>{}));
+
+    EXPECT_CALL(mockOrderRepo, findAll())
+        .Times(1)
+        .WillOnce(Return(std::vector<Order>{}));
+
+    std::vector<Sample>      capturedSamples;
+    std::vector<StockStatus> capturedStatusList;
+
+    EXPECT_CALL(mockView, showStockStatus(_, _))
+        .Times(1)
+        .WillOnce([&](const std::vector<Sample>& samples,
+                      const std::vector<StockStatus>& statusList) {
+            capturedSamples    = samples;
+            capturedStatusList = statusList;
+        });
+
+    auto controller = makeController();
+    controller.showStockStatus();
+
+    EXPECT_EQ(capturedSamples.size(),    0u);
+    EXPECT_EQ(capturedStatusList.size(), 0u);
+}
