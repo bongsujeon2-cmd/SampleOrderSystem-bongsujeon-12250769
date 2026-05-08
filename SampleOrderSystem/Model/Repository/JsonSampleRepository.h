@@ -14,18 +14,17 @@ public:
         load();
     }
 
+    // insert (중복 ID는 false 반환). Controller가 existsId()로 사전 검사 후 호출하는 계약.
     bool save(const Sample& sample) override {
         if (store_.count(sample.id)) return false;
         store_[sample.id] = sample;
-        flush();
-        return true;
+        return flush();
     }
 
     bool update(const Sample& sample) override {
         if (!store_.count(sample.id)) return false;
         store_[sample.id] = sample;
-        flush();
-        return true;
+        return flush();
     }
 
     std::optional<Sample> findById(const std::string& id) const override {
@@ -56,6 +55,7 @@ public:
         return store_.count(id) > 0;
     }
 
+    // 대소문자를 구분하는 완전 일치. "AlGaN"과 "algan"은 다른 이름으로 취급한다.
     bool existsName(const std::string& name) const override {
         for (const auto& [id, sample] : store_) {
             if (sample.name == name) return true;
@@ -64,7 +64,7 @@ public:
     }
 
 private:
-    std::string              filePath_;
+    std::string                   filePath_;
     std::map<std::string, Sample> store_;
 
     void load() {
@@ -74,19 +74,38 @@ private:
         const auto& arr = root.at("samples");
         if (!arr.isArray()) return;
         for (size_t i = 0; i < arr.size(); ++i) {
-            Sample s = Sample::fromJson(arr[i]);
+            Sample s = sampleFromJson(arr[i]);
             store_[s.id] = s;
         }
     }
 
-    void flush() const {
+    bool flush() const {
         JsonValue root;
-        JsonValue arr;
-        arr = JsonValue(JsonValue::Array{});
+        JsonValue arr = JsonValue(JsonValue::Array{});
         for (const auto& [id, sample] : store_)
-            arr.getArray().push_back(sample.toJson());
+            arr.getArray().push_back(sampleToJson(sample));
         root["samples"] = arr;
-        root.saveToFile(filePath_);
+        return root.saveToFile(filePath_);
+    }
+
+    static JsonValue sampleToJson(const Sample& s) {
+        JsonValue j;
+        j["id"]                = JsonValue(s.id);
+        j["name"]              = JsonValue(s.name);
+        j["avgProductionTime"] = JsonValue(s.avgProductionTime);
+        j["yieldRate"]         = JsonValue(s.yieldRate);
+        j["currentStock"]      = JsonValue(s.currentStock);
+        return j;
+    }
+
+    static Sample sampleFromJson(const JsonValue& j) {
+        Sample s;
+        s.id                = j.at("id").getString();
+        s.name              = j.at("name").getString();
+        s.avgProductionTime = static_cast<int>(j.at("avgProductionTime").getInt());
+        s.yieldRate         = j.at("yieldRate").getNumber();
+        s.currentStock      = static_cast<int>(j.at("currentStock").getInt());
+        return s;
     }
 
     static std::string toLower(const std::string& s) {

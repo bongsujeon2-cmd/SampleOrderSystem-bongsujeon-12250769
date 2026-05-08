@@ -48,9 +48,9 @@ protected:
         // GetCurrentTestInfo()로 테스트 이름을 포함시켜 중복을 방지한다.
         const ::testing::TestInfo* info =
             ::testing::UnitTest::GetInstance()->current_test_info();
-        tempFilePath = std::string("test_samples_") +
-                       info->test_suite_name() + "_" +
-                       info->name() + ".json";
+        tempFilePath = (fs::temp_directory_path() /
+            (std::string("test_samples_") + info->test_suite_name() + "_" + info->name() + ".json")
+        ).string();
     }
 
     void TearDown() override
