@@ -1,5 +1,10 @@
 #include "ShipmentController.h"
 
+static constexpr auto kErrOrderNotFound     = "존재하지 않는 주문 ID입니다.";
+static constexpr auto kErrSampleNotFound    = "시료 정보를 찾을 수 없습니다.";
+static constexpr auto kErrNotConfirmed      = "CONFIRMED 상태의 주문만 출고 처리할 수 있습니다.";
+static constexpr auto kErrInsufficientStock = "재고 부족으로 출고 불가합니다.";
+
 ShipmentController::ShipmentController(IOrderRepository& orderRepo,
                                         ISampleRepository& sampleRepo,
                                         IShipmentView& view)
@@ -18,9 +23,14 @@ void ShipmentController::processShipment() {
     }
     auto order = *orderOpt;
 
+    if (order.status != OrderStatus::CONFIRMED) {
+        view_.showError(kErrNotConfirmed);
+        return;
+    }
+
     auto sampleOpt = sampleRepo_.findById(order.sampleId);
     if (!sampleOpt) {
-        view_.showError(kErrOrderNotFound);
+        view_.showError(kErrSampleNotFound);
         return;
     }
     auto sample = *sampleOpt;

@@ -14,6 +14,7 @@ using ::testing::Return;
 using ::testing::_;
 using ::testing::Eq;
 using ::testing::SaveArg;
+using ::testing::DoAll;
 
 // -----------------------------------------------------------------------
 // Mock 클래스
@@ -133,18 +134,12 @@ TEST_F(ShipmentControllerTest, ProcessShipment_ValidOrder_DeductsStockAndRelease
     Sample updatedSample;
     EXPECT_CALL(mockSampleRepo, update(_))
         .Times(1)
-        .WillOnce([&updatedSample](const Sample& s) {
-            updatedSample = s;
-            return true;
-        });
+        .WillOnce(DoAll(SaveArg<0>(&updatedSample), Return(true)));
 
     Order updatedOrder;
     EXPECT_CALL(mockOrderRepo, update(_))
         .Times(1)
-        .WillOnce([&updatedOrder](const Order& o) {
-            updatedOrder = o;
-            return true;
-        });
+        .WillOnce(DoAll(SaveArg<0>(&updatedOrder), Return(true)));
 
     EXPECT_CALL(mockView, showShipmentSuccess(Eq(orderId), Eq(qty)))
         .Times(1);
@@ -263,18 +258,12 @@ TEST_F(ShipmentControllerTest, ProcessShipment_StockExactlyEqual_Succeeds)
     Sample updatedSample;
     EXPECT_CALL(mockSampleRepo, update(_))
         .Times(1)
-        .WillOnce([&updatedSample](const Sample& s) {
-            updatedSample = s;
-            return true;
-        });
+        .WillOnce(DoAll(SaveArg<0>(&updatedSample), Return(true)));
 
     Order updatedOrder;
     EXPECT_CALL(mockOrderRepo, update(_))
         .Times(1)
-        .WillOnce([&updatedOrder](const Order& o) {
-            updatedOrder = o;
-            return true;
-        });
+        .WillOnce(DoAll(SaveArg<0>(&updatedOrder), Return(true)));
 
     EXPECT_CALL(mockView, showShipmentSuccess(Eq(orderId), Eq(qty)))
         .Times(1);
@@ -346,4 +335,41 @@ TEST_F(ShipmentControllerTest, ListConfirmedOrders_NoOrders_CallsShowNoConfirmed
 
     auto controller = makeController();
     controller.listConfirmedOrders();
+}
+
+// -----------------------------------------------------------------------
+// TC-07: processShipment() — BR-11: CONFIRMED 이외 상태 주문 → showError() 1회
+// order.status = RESERVED (CONFIRMED 아님)
+// showError() 1회, sampleRepo_.update() 0회, orderRepo_.update() 0회
+// -----------------------------------------------------------------------
+TEST_F(ShipmentControllerTest, ProcessShipment_NotConfirmedOrder_ShowsError)
+{
+    const std::string orderId  = "ORD-004";
+    const std::string sampleId = "S-004";
+    const int         qty      = 10;
+
+    Order order = makeOrder(orderId, sampleId, qty, OrderStatus::RESERVED);
+
+    EXPECT_CALL(mockView, promptOrderIdInput())
+        .Times(1)
+        .WillOnce(Return(orderId));
+
+    EXPECT_CALL(mockOrderRepo, findById(Eq(orderId)))
+        .Times(1)
+        .WillOnce(Return(std::make_optional(order)));
+
+    EXPECT_CALL(mockSampleRepo, update(_))
+        .Times(0);
+
+    EXPECT_CALL(mockOrderRepo, update(_))
+        .Times(0);
+
+    EXPECT_CALL(mockView, showError(_))
+        .Times(1);
+
+    EXPECT_CALL(mockView, showShipmentSuccess(_, _))
+        .Times(0);
+
+    auto controller = makeController();
+    controller.processShipment();
 }
