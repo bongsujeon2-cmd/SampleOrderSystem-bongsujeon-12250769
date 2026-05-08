@@ -167,6 +167,7 @@
     <ClInclude Include="Model\Service\ProductionService.h" />
     <ClInclude Include="Model\Service\RealTimeProvider.h" />
     <ClInclude Include="Model\Service\MockTimeProvider.h" />
+    <ClInclude Include="Model\Service\TimeUtils.h" />
     <ClInclude Include="View\IOrderView.h" />
     <ClInclude Include="View\ISampleView.h" />
     <ClInclude Include="View\OrderView.h" />

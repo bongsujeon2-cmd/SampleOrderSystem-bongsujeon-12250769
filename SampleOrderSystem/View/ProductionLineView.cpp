@@ -33,7 +33,7 @@ void ProductionLineView::showActiveJob(
     const ProductionJob& job,
     const std::string& sampleName,
     int elapsedMinutes,
-    std::string expectedFinish)
+    const std::string& expectedFinish)
 {
     std::cout << "\n--- 현재 생산 중인 작업 ---\n";
     std::cout << "  주문 ID    : " << job.orderId << "\n";

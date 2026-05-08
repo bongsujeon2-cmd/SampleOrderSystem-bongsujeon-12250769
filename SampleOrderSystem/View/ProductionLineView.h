@@ -10,7 +10,7 @@ public:
     void showActiveJob(const ProductionJob& job,
                        const std::string& sampleName,
                        int elapsedMinutes,
-                       std::string expectedFinish) override;
+                       const std::string& expectedFinish) override;
     void showNoActiveJob() override;
     void showQueue(const std::vector<ProductionJob>& queue,
                    const std::vector<std::string>& sampleNames) override;

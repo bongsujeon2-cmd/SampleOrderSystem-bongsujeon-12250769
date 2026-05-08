@@ -11,7 +11,7 @@ public:
     virtual void showActiveJob(const ProductionJob& job,
                                const std::string& sampleName,
                                int elapsedMinutes,
-                               std::string expectedFinish) = 0;
+                               const std::string& expectedFinish) = 0;
     virtual void showNoActiveJob() = 0;
     virtual void showQueue(const std::vector<ProductionJob>& queue,
                            const std::vector<std::string>& sampleNames) = 0;

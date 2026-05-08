@@ -1,6 +1,6 @@
 #include "ProductionLineController.h"
-#include <sstream>
-#include <iomanip>
+#include "../Model/Service/MockTimeProvider.h"
+#include "../Model/Service/TimeUtils.h"
 #include <vector>
 #include <string>
 
@@ -41,12 +41,8 @@ void ProductionLineController::showStatus()
 
     time_t finishTime = static_cast<time_t>(
         job.startTimeUnix + static_cast<int64_t>(job.totalProductionTimeMin) * 60LL);
-    struct tm tm_info;
-    localtime_s(&tm_info, &finishTime);
-    std::ostringstream ss;
-    ss << std::put_time(&tm_info, "%Y-%m-%dT%H:%M:%S");
 
-    view_.showActiveJob(job, sampleName, elapsed, ss.str());
+    view_.showActiveJob(job, sampleName, elapsed, TimeUtils::toIso8601(finishTime));
 }
 
 void ProductionLineController::showQueue()
@@ -70,12 +66,8 @@ void ProductionLineController::showQueue()
 void ProductionLineController::advanceTime(int minutes)
 {
     if (!isMockMode_) return;
-
-    int actualMinutes = view_.promptAdvanceMinutes();
-
-    // ITimeProvider::advance()를 통해 시간 앞당기기 (MockTimeProvider에서 실제 구현)
-    timeProvider_.advance(actualMinutes);
-
+    if (auto* mock = dynamic_cast<MockTimeProvider*>(&timeProvider_))
+        mock->advance(minutes);
     productionService_.checkAndComplete();
 }
 
@@ -93,7 +85,8 @@ void ProductionLineController::run()
                 break;
             case 3:
                 if (isMockMode_) {
-                    advanceTime(0);
+                    int min = view_.promptAdvanceMinutes();
+                    advanceTime(min);
                 } else {
                     view_.showError("잘못된 선택입니다.");
                 }

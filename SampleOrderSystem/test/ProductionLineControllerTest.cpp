@@ -50,7 +50,7 @@ public:
     MOCK_METHOD(void, showSubMenu, (bool), (override));
     MOCK_METHOD(int, getSubMenuChoice, (), (override));
     MOCK_METHOD(void, showActiveJob,
-        (const ProductionJob&, const std::string&, int, std::string),
+        (const ProductionJob&, const std::string&, int, const std::string&),
         (override));
     MOCK_METHOD(void, showNoActiveJob, (), (override));
     MOCK_METHOD(void, showQueue,
@@ -120,7 +120,7 @@ protected:
 // -----------------------------------------------------------------------
 // TC-01: showStatus() — activeJob 없음 → showNoActiveJob() 1회, showActiveJob() 0회
 // -----------------------------------------------------------------------
-TEST_F(ProductionLineControllerTest, ShowStatus_NoActiveJob_ShowsNoActiveJob)
+TEST_F(ProductionLineControllerTest, ShowStatus_NoActiveJob_TriggersCheckAndCompleteAndShowsNoActiveJob)
 {
     ProductionState state;
     state.activeJob = std::nullopt;
@@ -178,27 +178,6 @@ TEST_F(ProductionLineControllerTest, ShowStatus_WithActiveJob_ShowsActiveJobInfo
 
     EXPECT_CALL(mockView, showNoActiveJob())
         .Times(0);
-
-    auto ctrl = makeController();
-    ctrl.showStatus();
-}
-
-// -----------------------------------------------------------------------
-// TC-03: showStatus() — checkAndComplete() 정확히 1회 호출됨을 검증
-// -----------------------------------------------------------------------
-TEST_F(ProductionLineControllerTest, ShowStatus_TriggersCheckAndComplete)
-{
-    ProductionState state;
-    state.activeJob = std::nullopt;
-
-    EXPECT_CALL(mockService, checkAndComplete())
-        .Times(1);
-
-    EXPECT_CALL(mockProductionRepo, getState())
-        .WillOnce(Return(state));
-
-    EXPECT_CALL(mockView, showNoActiveJob())
-        .Times(1);
 
     auto ctrl = makeController();
     ctrl.showStatus();
@@ -263,18 +242,13 @@ TEST_F(ProductionLineControllerTest, ShowQueue_TwoJobs_PassesSampleNamesToView)
 
 // -----------------------------------------------------------------------
 // TC-06: advanceTime() — mock 모드 전용
-// promptAdvanceMinutes() → 30 반환
-// MockTimeProvider::advance(30) 호출 → now()가 1600 + 30*60 = 3400 으로 증가
+// advanceTime(30) 호출 → MockTimeProvider::advance(30) 경유 now()가 1600 + 30*60 = 3400 으로 증가
 // checkAndComplete() 1회 호출
 // -----------------------------------------------------------------------
 TEST_F(ProductionLineControllerTest, AdvanceTime_MockMode_AdvancesTimeAndChecks)
 {
     const int advanceMin = 30;
     const time_t expectedNow = 1600 + static_cast<time_t>(advanceMin) * 60; // 3400
-
-    EXPECT_CALL(mockView, promptAdvanceMinutes())
-        .Times(1)
-        .WillOnce(Return(advanceMin));
 
     EXPECT_CALL(mockService, checkAndComplete())
         .Times(1);

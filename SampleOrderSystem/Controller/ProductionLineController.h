@@ -14,6 +14,9 @@ public:
                              IProductionLineView&   view,
                              bool                   isMockMode = false);
 
+    ProductionLineController(const ProductionLineController&) = delete;
+    ProductionLineController& operator=(const ProductionLineController&) = delete;
+
     void run();
     void showStatus();
     void showQueue();
