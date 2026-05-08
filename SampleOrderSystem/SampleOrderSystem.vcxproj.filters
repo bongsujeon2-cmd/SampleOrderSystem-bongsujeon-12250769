@@ -98,6 +98,12 @@
     <ClCompile Include="Controller\ShipmentController.cpp">
       <Filter>Controller</Filter>
     </ClCompile>
+    <ClCompile Include="View\MonitoringView.cpp">
+      <Filter>View</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller\MonitoringController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json.hpp">
@@ -179,6 +185,18 @@
       <Filter>View</Filter>
     </ClInclude>
     <ClInclude Include="Controller\ShipmentController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Domain\StockStatus.h">
+      <Filter>Model\Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="View\IMonitoringView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\MonitoringView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\MonitoringController.h">
       <Filter>Controller</Filter>
     </ClInclude>
   </ItemGroup>

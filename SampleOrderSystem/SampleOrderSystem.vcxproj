@@ -151,8 +151,10 @@
     <ClCompile Include="View\OrderView.cpp" />
     <ClCompile Include="View\ProductionLineView.cpp" />
     <ClCompile Include="View\ShipmentView.cpp" />
+    <ClCompile Include="View\MonitoringView.cpp" />
     <ClCompile Include="Controller\ProductionLineController.cpp" />
     <ClCompile Include="Controller\ShipmentController.cpp" />
+    <ClCompile Include="Controller\MonitoringController.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Controller\SampleController.h" />
@@ -183,6 +185,10 @@
     <ClInclude Include="View\IShipmentView.h" />
     <ClInclude Include="View\ShipmentView.h" />
     <ClInclude Include="Controller\ShipmentController.h" />
+    <ClInclude Include="Model\Domain\StockStatus.h" />
+    <ClInclude Include="View\IMonitoringView.h" />
+    <ClInclude Include="View\MonitoringView.h" />
+    <ClInclude Include="Controller\MonitoringController.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
