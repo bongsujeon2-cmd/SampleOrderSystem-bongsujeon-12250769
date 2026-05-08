@@ -1,11 +1,12 @@
 #pragma once
+#include "ISubController.h"
 #include "../Model/Repository/IOrderRepository.h"
 #include "../Model/Repository/ISampleRepository.h"
 #include "../Model/Repository/IProductionRepository.h"
 #include "../Model/Service/ITimeProvider.h"
 #include "../View/IOrderView.h"
 
-class OrderController {
+class OrderController : public ISubController {
 public:
     OrderController(IOrderRepository& orderRepo,
                     ISampleRepository& sampleRepo,
@@ -13,7 +14,7 @@ public:
                     ITimeProvider& timeProvider,
                     IOrderView& view);
 
-    void run();
+    void run() override;
     void placeOrder();
     void processApprovalMenu();
     void approveOrder(const std::string& orderId);

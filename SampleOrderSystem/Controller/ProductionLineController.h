@@ -1,11 +1,12 @@
 #pragma once
+#include "ISubController.h"
 #include "../Model/Service/IProductionService.h"
 #include "../Model/Repository/IProductionRepository.h"
 #include "../Model/Repository/ISampleRepository.h"
 #include "../Model/Service/ITimeProvider.h"
 #include "../View/IProductionLineView.h"
 
-class ProductionLineController {
+class ProductionLineController : public ISubController {
 public:
     ProductionLineController(IProductionService&    productionService,
                              IProductionRepository& productionRepo,
@@ -17,7 +18,7 @@ public:
     ProductionLineController(const ProductionLineController&) = delete;
     ProductionLineController& operator=(const ProductionLineController&) = delete;
 
-    void run();
+    void run() override;
     void showStatus();
     void showQueue();
     void advanceTime(int minutes);

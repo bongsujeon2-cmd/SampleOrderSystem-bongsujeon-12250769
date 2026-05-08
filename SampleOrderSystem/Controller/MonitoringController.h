@@ -1,14 +1,15 @@
 #pragma once
+#include "ISubController.h"
 #include "../Model/Repository/IOrderRepository.h"
 #include "../Model/Repository/ISampleRepository.h"
 #include "../View/IMonitoringView.h"
 
-class MonitoringController {
+class MonitoringController : public ISubController {
 public:
     MonitoringController(IOrderRepository& orderRepo,
                          ISampleRepository& sampleRepo,
                          IMonitoringView& view);
-    void run();
+    void run() override;
     void showOrderStats();
     void showStockStatus();
 

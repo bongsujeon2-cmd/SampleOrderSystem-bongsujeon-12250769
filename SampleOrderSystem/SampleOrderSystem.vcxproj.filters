@@ -80,11 +80,17 @@
     <ClCompile Include="View\SampleView.cpp">
       <Filter>View</Filter>
     </ClCompile>
+    <ClCompile Include="Controller\AppController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
     <ClCompile Include="Controller\SampleController.cpp">
       <Filter>Controller</Filter>
     </ClCompile>
     <ClCompile Include="Controller\OrderController.cpp">
       <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="View\MainMenuView.cpp">
+      <Filter>View</Filter>
     </ClCompile>
     <ClCompile Include="View\OrderView.cpp">
       <Filter>View</Filter>
@@ -139,11 +145,23 @@
     <ClInclude Include="View\SampleView.h">
       <Filter>View</Filter>
     </ClInclude>
+    <ClInclude Include="Controller\ISubController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\AppController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
     <ClInclude Include="Controller\SampleController.h">
       <Filter>Controller</Filter>
     </ClInclude>
     <ClInclude Include="Controller\OrderController.h">
       <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="View\IMainMenuView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\MainMenuView.h">
+      <Filter>View</Filter>
     </ClInclude>
     <ClInclude Include="Model\Domain\ProductionJob.h">
       <Filter>Model\Domain</Filter>

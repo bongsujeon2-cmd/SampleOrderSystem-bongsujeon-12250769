@@ -134,8 +134,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Controller\AppController.cpp" />
     <ClCompile Include="Controller\SampleController.cpp" />
     <ClCompile Include="Controller\OrderController.cpp" />
+    <ClCompile Include="View\MainMenuView.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test\SampleRepositoryTest.cpp" />
     <ClCompile Include="test\SampleControllerTest.cpp" />
@@ -158,8 +160,12 @@
     <ClCompile Include="Controller\MonitoringController.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Controller\ISubController.h" />
+    <ClInclude Include="Controller\AppController.h" />
     <ClInclude Include="Controller\SampleController.h" />
     <ClInclude Include="Controller\OrderController.h" />
+    <ClInclude Include="View\IMainMenuView.h" />
+    <ClInclude Include="View\MainMenuView.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Model\Domain\Order.h" />
     <ClInclude Include="Model\Domain\Sample.h" />
