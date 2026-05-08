@@ -15,6 +15,42 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <Filter Include="테스트 파일">
+      <UniqueIdentifier>{A1B2C3D4-E5F6-7890-ABCD-EF1234567890}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model">
+      <UniqueIdentifier>{B1C2D3E4-F5A6-7890-BCDE-F12345678901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Domain">
+      <UniqueIdentifier>{C2D3E4F5-A6B7-8901-CDEF-012345678902}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Model\Repository">
+      <UniqueIdentifier>{D3E4F5A6-B7C8-9012-DEF0-123456789003}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="test\SampleRepositoryTest.cpp">
+      <Filter>테스트 파일</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="json.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Domain\Sample.h">
+      <Filter>Model\Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Repository\ISampleRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Repository\JsonSampleRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
