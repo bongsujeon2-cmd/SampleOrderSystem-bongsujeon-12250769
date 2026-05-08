@@ -79,11 +79,11 @@ protected:
 };
 
 // -----------------------------------------------------------------------
-// TC-01: Run_CheckAndCompleteCalledEachLoop
-// getMenuChoice() → 1, 0 순서 (루프 2회 순환)
-// checkAndComplete() 2회 호출 확인
+// TC-01: Run_CheckAndCompleteCalledEachLoopIteration
+// getMenuChoice() → 9, 0 순서 (invalid → exit, 루프 2회 순환)
+// checkAndComplete() 2회 호출, showInvalidInput() 1회 호출 확인
 // -----------------------------------------------------------------------
-TEST_F(AppControllerTest, Run_CheckAndCompleteCalledEachLoop)
+TEST_F(AppControllerTest, Run_CheckAndCompleteCalledEachLoopIteration)
 {
     EXPECT_CALL(mockProductionService, checkAndComplete())
         .Times(2);
@@ -95,10 +95,10 @@ TEST_F(AppControllerTest, Run_CheckAndCompleteCalledEachLoop)
         .WillRepeatedly(Return());
 
     EXPECT_CALL(mockView, getMenuChoice())
-        .WillOnce(Return(1))
+        .WillOnce(Return(9))
         .WillOnce(Return(0));
 
-    EXPECT_CALL(mockSampleCtrl, run())
+    EXPECT_CALL(mockView, showInvalidInput())
         .Times(1);
 
     auto controller = makeController();
@@ -337,18 +337,15 @@ TEST_F(AppControllerTest, Run_ShowsStockSnapshotEachLoop)
         .WillRepeatedly(Return());
 
     EXPECT_CALL(mockSampleRepo, findAll())
-        .Times(1)
-        .WillOnce(Return(expectedSamples));
+        .WillRepeatedly(Return(expectedSamples));
 
     std::vector<Sample> capturedSamples;
     EXPECT_CALL(mockView, showMainMenu(_))
-        .Times(1)
-        .WillOnce([&](const std::vector<Sample>& samples) {
+        .WillRepeatedly([&](const std::vector<Sample>& samples) {
             capturedSamples = samples;
         });
 
     EXPECT_CALL(mockView, getMenuChoice())
-        .Times(1)
         .WillOnce(Return(0));
 
     auto controller = makeController();

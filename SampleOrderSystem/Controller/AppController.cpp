@@ -1,4 +1,6 @@
 #include "AppController.h"
+#include "../Model/Service/IProductionService.h"
+#include "../Model/Repository/ISampleRepository.h"
 
 AppController::AppController(ISubController& sampleCtrl,
                              ISubController& orderCtrl,

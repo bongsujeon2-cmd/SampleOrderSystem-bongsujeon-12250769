@@ -24,6 +24,7 @@ int MainMenuView::getMenuChoice()
 {
     int choice = -1;
     std::string line;
+    if (std::cin.eof()) return 0;  // EOF → 정상 종료로 처리
     if (std::getline(std::cin, line)) {
         try {
             choice = std::stoi(line);
@@ -31,6 +32,7 @@ int MainMenuView::getMenuChoice()
             choice = -1;
         }
     }
+    if (std::cin.eof()) return 0;  // EOF → 정상 종료로 처리
     return choice;
 }
 

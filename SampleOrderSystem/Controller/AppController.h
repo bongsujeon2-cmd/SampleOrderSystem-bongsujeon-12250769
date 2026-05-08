@@ -1,8 +1,9 @@
 #pragma once
 #include "ISubController.h"
-#include "../Model/Service/IProductionService.h"
-#include "../Model/Repository/ISampleRepository.h"
 #include "../View/IMainMenuView.h"
+
+class IProductionService;
+class ISampleRepository;
 
 class AppController {
 public:
