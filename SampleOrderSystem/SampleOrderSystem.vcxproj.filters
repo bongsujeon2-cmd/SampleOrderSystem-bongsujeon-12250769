@@ -36,6 +36,9 @@
     <Filter Include="Controller">
       <UniqueIdentifier>{F5A6B7C8-D9E0-1234-F012-345678900005}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tools">
+      <UniqueIdentifier>{A6B7C8D9-E0F1-2345-0123-456789000006}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -43,6 +46,9 @@
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Tools\DataMonitorTool.cpp">
+      <Filter>Tools</Filter>
     </ClCompile>
     <ClCompile Include="test\SampleRepositoryTest.cpp">
       <Filter>테스트 파일</Filter>
@@ -115,6 +121,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Tools\DataMonitorTool.h">
+      <Filter>Tools</Filter>
+    </ClInclude>
     <ClInclude Include="json.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>

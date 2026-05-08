@@ -11,6 +11,9 @@
 #include "Model/Repository/JsonOrderRepository.h"
 #include "Model/Repository/JsonProductionRepository.h"
 
+// Tools
+#include "Tools/DataMonitorTool.h"
+
 // Service
 #include "Model/Service/RealTimeProvider.h"
 #include "Model/Service/MockTimeProvider.h"
@@ -48,6 +51,12 @@ int main(int argc, char* argv[]) {
     if (hasArg(argc, argv, "--test")) {
         testing::InitGoogleTest(&argc, argv);
         return RUN_ALL_TESTS();
+    }
+
+    // --dump-data: JSON 데이터 파일 내용 출력
+    if (hasArg(argc, argv, "--dump-data")) {
+        fs::create_directories("data");
+        return DataMonitorTool().run();
     }
 
     // data/ 디렉토리 보장

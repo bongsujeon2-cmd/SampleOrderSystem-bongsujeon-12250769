@@ -134,6 +134,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Tools\DataMonitorTool.cpp" />
     <ClCompile Include="Controller\AppController.cpp" />
     <ClCompile Include="Controller\SampleController.cpp" />
     <ClCompile Include="Controller\OrderController.cpp" />
@@ -160,6 +161,7 @@
     <ClCompile Include="Controller\MonitoringController.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Tools\DataMonitorTool.h" />
     <ClInclude Include="Controller\ISubController.h" />
     <ClInclude Include="Controller\AppController.h" />
     <ClInclude Include="Controller\SampleController.h" />
