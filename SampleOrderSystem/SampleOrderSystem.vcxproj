@@ -135,23 +135,33 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Controller\SampleController.cpp" />
+    <ClCompile Include="Controller\OrderController.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test\SampleRepositoryTest.cpp" />
     <ClCompile Include="test\SampleControllerTest.cpp" />
     <ClCompile Include="test\OrderRepositoryTest.cpp" />
     <ClCompile Include="test\OrderControllerTest.cpp" />
     <ClCompile Include="View\SampleView.cpp" />
+    <ClCompile Include="View\OrderView.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Controller\SampleController.h" />
+    <ClInclude Include="Controller\OrderController.h" />
     <ClInclude Include="json.hpp" />
     <ClInclude Include="Model\Domain\Order.h" />
     <ClInclude Include="Model\Domain\Sample.h" />
+    <ClInclude Include="Model\Domain\ProductionJob.h" />
     <ClInclude Include="Model\Repository\IOrderRepository.h" />
     <ClInclude Include="Model\Repository\ISampleRepository.h" />
+    <ClInclude Include="Model\Repository\IProductionRepository.h" />
     <ClInclude Include="Model\Repository\JsonOrderRepository.h" />
     <ClInclude Include="Model\Repository\JsonSampleRepository.h" />
+    <ClInclude Include="Model\Service\ITimeProvider.h" />
+    <ClInclude Include="Model\Service\RealTimeProvider.h" />
+    <ClInclude Include="Model\Service\MockTimeProvider.h" />
+    <ClInclude Include="View\IOrderView.h" />
     <ClInclude Include="View\ISampleView.h" />
+    <ClInclude Include="View\OrderView.h" />
     <ClInclude Include="View\SampleView.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

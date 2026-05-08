@@ -27,6 +27,9 @@
     <Filter Include="Model\Repository">
       <UniqueIdentifier>{D3E4F5A6-B7C8-9012-DEF0-123456789003}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Model\Service">
+      <UniqueIdentifier>{A5B6C7D8-E9F0-1234-5678-901234567890}</UniqueIdentifier>
+    </Filter>
     <Filter Include="View">
       <UniqueIdentifier>{E4F5A6B7-C8D9-0123-EF01-234567890004}</UniqueIdentifier>
     </Filter>
@@ -59,6 +62,12 @@
     <ClCompile Include="Controller\SampleController.cpp">
       <Filter>Controller</Filter>
     </ClCompile>
+    <ClCompile Include="Controller\OrderController.cpp">
+      <Filter>Controller</Filter>
+    </ClCompile>
+    <ClCompile Include="View\OrderView.cpp">
+      <Filter>View</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="json.hpp">
@@ -90,6 +99,30 @@
     </ClInclude>
     <ClInclude Include="Controller\SampleController.h">
       <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller\OrderController.h">
+      <Filter>Controller</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Domain\ProductionJob.h">
+      <Filter>Model\Domain</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Repository\IProductionRepository.h">
+      <Filter>Model\Repository</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Service\ITimeProvider.h">
+      <Filter>Model\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Service\RealTimeProvider.h">
+      <Filter>Model\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="Model\Service\MockTimeProvider.h">
+      <Filter>Model\Service</Filter>
+    </ClInclude>
+    <ClInclude Include="View\IOrderView.h">
+      <Filter>View</Filter>
+    </ClInclude>
+    <ClInclude Include="View\OrderView.h">
+      <Filter>View</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
