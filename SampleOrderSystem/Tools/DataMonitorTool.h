@@ -1,14 +1,19 @@
+// PRD: "--dump-data 인수로 활성화, 세 JSON 파일 내용을 즉시 출력 후 종료"
+// Design 문서의 인터랙티브 메뉴는 향후 확장 시 고려
 #pragma once
-#include "../Model/Repository/JsonSampleRepository.h"
-#include "../Model/Repository/JsonOrderRepository.h"
-#include "../Model/Repository/JsonProductionRepository.h"
+#include <string>
+#include "../Model/Repository/ISampleRepository.h"
+#include "../Model/Repository/IOrderRepository.h"
+#include "../Model/Repository/IProductionRepository.h"
 
 class DataMonitorTool {
 public:
-    DataMonitorTool(const std::string& dataDir = "data");
+    DataMonitorTool(ISampleRepository&, IOrderRepository&, IProductionRepository&);
     int run();
 private:
-    std::string dataDir_;
+    ISampleRepository&     sampleRepo_;
+    IOrderRepository&      orderRepo_;
+    IProductionRepository& productionRepo_;
     void showSamples();
     void showOrders();
     void showProduction();

@@ -1,21 +1,24 @@
 #include "DataMonitorTool.h"
 #include <iostream>
 #include <iomanip>
-#include <ctime>
 
-DataMonitorTool::DataMonitorTool(const std::string& dataDir)
-    : dataDir_(dataDir)
+DataMonitorTool::DataMonitorTool(ISampleRepository& sampleRepo,
+                                 IOrderRepository& orderRepo,
+                                 IProductionRepository& productionRepo)
+    : sampleRepo_(sampleRepo)
+    , orderRepo_(orderRepo)
+    , productionRepo_(productionRepo)
 {
 }
 
 int DataMonitorTool::run() {
-    separator(dataDir_ + "/samples.json");
+    separator("samples.json");
     showSamples();
 
-    separator(dataDir_ + "/orders.json");
+    separator("orders.json");
     showOrders();
 
-    separator(dataDir_ + "/production.json");
+    separator("production.json");
     showProduction();
 
     std::cout << "\n";
@@ -23,8 +26,11 @@ int DataMonitorTool::run() {
 }
 
 void DataMonitorTool::showSamples() {
-    JsonSampleRepository repo(dataDir_ + "/samples.json");
-    auto samples = repo.findAll();
+    auto all = sampleRepo_.findAll();
+    if (all.empty()) {
+        std::cout << "  (데이터 없음)\n";
+        return;
+    }
 
     std::cout << "  "
               << std::left
@@ -36,12 +42,7 @@ void DataMonitorTool::showSamples() {
               << "\n";
     std::cout << "  " << std::string(70, '-') << "\n";
 
-    if (samples.empty()) {
-        std::cout << "  (데이터 없음)\n";
-        return;
-    }
-
-    for (const auto& s : samples) {
+    for (const auto& s : all) {
         std::cout << "  "
                   << std::left
                   << std::setw(12) << s.id
@@ -54,8 +55,11 @@ void DataMonitorTool::showSamples() {
 }
 
 void DataMonitorTool::showOrders() {
-    JsonOrderRepository repo(dataDir_ + "/orders.json");
-    auto orders = repo.findAll();
+    auto all = orderRepo_.findAll();
+    if (all.empty()) {
+        std::cout << "  (데이터 없음)\n";
+        return;
+    }
 
     std::cout << "  "
               << std::left
@@ -68,54 +72,35 @@ void DataMonitorTool::showOrders() {
               << "\n";
     std::cout << "  " << std::string(82, '-') << "\n";
 
-    if (orders.empty()) {
-        std::cout << "  (데이터 없음)\n";
-        return;
-    }
-
-    auto statusToStr = [](OrderStatus st) -> std::string {
-        switch (st) {
-        case OrderStatus::RESERVED:  return "RESERVED";
-        case OrderStatus::PRODUCING: return "PRODUCING";
-        case OrderStatus::CONFIRMED: return "CONFIRMED";
-        case OrderStatus::RELEASE:   return "RELEASE";
-        case OrderStatus::REJECTED:  return "REJECTED";
-        default:                     return "UNKNOWN";
-        }
-    };
-
-    for (const auto& o : orders) {
+    for (const auto& o : all) {
         std::cout << "  "
                   << std::left
                   << std::setw(12) << o.id
                   << std::setw(12) << o.sampleId
                   << std::setw(16) << o.customerName
                   << std::setw(8)  << o.quantity
-                  << std::setw(12) << statusToStr(o.status)
+                  << std::setw(12) << toString(o.status)
                   << std::setw(24) << o.createdAt
                   << "\n";
     }
 }
 
 void DataMonitorTool::showProduction() {
-    JsonProductionRepository repo(dataDir_ + "/production.json");
-    const auto& state = repo.getState();
+    const auto& state = productionRepo_.getState();
 
-    // activeJob
     if (!state.activeJob.has_value()) {
         std::cout << "  activeJob: (없음)\n";
     } else {
         const auto& job = state.activeJob.value();
         std::cout << "  activeJob:\n";
-        std::cout << "    orderId             : " << job.orderId << "\n";
-        std::cout << "    sampleId            : " << job.sampleId << "\n";
-        std::cout << "    shortage            : " << job.shortage << "\n";
-        std::cout << "    actualProductionQty : " << job.actualProductionQty << "\n";
-        std::cout << "    totalProductionTime : " << job.totalProductionTimeMin << " 분\n";
-        std::cout << "    startTimeUnix       : " << job.startTimeUnix << "\n";
+        std::cout << "    orderId                : " << job.orderId << "\n";
+        std::cout << "    sampleId               : " << job.sampleId << "\n";
+        std::cout << "    shortage               : " << job.shortage << "\n";
+        std::cout << "    actualProductionQty    : " << job.actualProductionQty << "\n";
+        std::cout << "    totalProductionTimeMin : " << job.totalProductionTimeMin << " 분\n";
+        std::cout << "    startTimeUnix          : " << job.startTimeUnix << "\n";
     }
 
-    // queue
     std::cout << "  queue (" << state.queue.size() << "건):\n";
     if (state.queue.empty()) {
         std::cout << "    (대기 없음)\n";

@@ -53,14 +53,16 @@ int main(int argc, char* argv[]) {
         return RUN_ALL_TESTS();
     }
 
+    // data/ 디렉토리 보장 (공통)
+    fs::create_directories("data");
+
     // --dump-data: JSON 데이터 파일 내용 출력
     if (hasArg(argc, argv, "--dump-data")) {
-        fs::create_directories("data");
-        return DataMonitorTool().run();
+        JsonSampleRepository     sampleRepo("data/samples.json");
+        JsonOrderRepository      orderRepo("data/orders.json");
+        JsonProductionRepository productionRepo("data/production.json");
+        return DataMonitorTool(sampleRepo, orderRepo, productionRepo).run();
     }
-
-    // data/ 디렉토리 보장
-    fs::create_directories("data");
 
     // --mock-time 여부
     bool mockTime = hasArg(argc, argv, "--mock-time");
