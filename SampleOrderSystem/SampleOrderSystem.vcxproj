@@ -138,6 +138,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="test\SampleRepositoryTest.cpp" />
     <ClCompile Include="test\SampleControllerTest.cpp" />
+    <ClCompile Include="test\OrderRepositoryTest.cpp" />
     <ClCompile Include="View\SampleView.cpp" />
   </ItemGroup>
   <ItemGroup>

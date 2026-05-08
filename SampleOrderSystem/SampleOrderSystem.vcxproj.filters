@@ -47,6 +47,9 @@
     <ClCompile Include="test\SampleControllerTest.cpp">
       <Filter>테스트 파일</Filter>
     </ClCompile>
+    <ClCompile Include="test\OrderRepositoryTest.cpp">
+      <Filter>테스트 파일</Filter>
+    </ClCompile>
     <ClCompile Include="View\SampleView.cpp">
       <Filter>View</Filter>
     </ClCompile>
