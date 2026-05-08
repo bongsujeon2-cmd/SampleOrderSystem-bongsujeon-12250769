@@ -12,4 +12,5 @@ public:
     virtual std::vector<Order>   findAll() const = 0;
     virtual std::vector<Order>   findByStatus(OrderStatus status) const = 0;
     virtual bool                 update(const Order& order) = 0;
+    virtual void                 clearAll() = 0;
 };

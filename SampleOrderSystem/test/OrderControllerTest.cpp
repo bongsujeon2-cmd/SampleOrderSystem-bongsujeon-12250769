@@ -32,6 +32,7 @@ public:
     MOCK_METHOD(std::vector<Sample>, searchByName, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsId, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsName, (const std::string&), (const, override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockOrderRepository : public IOrderRepository {
@@ -41,6 +42,7 @@ public:
     MOCK_METHOD(std::vector<Order>, findAll, (), (const, override));
     MOCK_METHOD(std::vector<Order>, findByStatus, (OrderStatus), (const, override));
     MOCK_METHOD(bool, update, (const Order&), (override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockProductionRepository : public IProductionRepository {
@@ -48,6 +50,7 @@ public:
     MOCK_METHOD(ProductionState, getState, (), (const, override));
     MOCK_METHOD(void, setState, (const ProductionState&), (override));
     MOCK_METHOD(void, enqueue, (const ProductionJob&), (override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockTimeProviderGMock : public ITimeProvider {

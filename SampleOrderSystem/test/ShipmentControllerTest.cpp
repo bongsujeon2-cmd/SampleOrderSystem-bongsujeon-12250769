@@ -27,6 +27,7 @@ public:
     MOCK_METHOD(std::vector<Order>, findAll, (), (const, override));
     MOCK_METHOD(std::vector<Order>, findByStatus, (OrderStatus), (const, override));
     MOCK_METHOD(bool, update, (const Order&), (override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockSampleRepository : public ISampleRepository {
@@ -38,6 +39,7 @@ public:
     MOCK_METHOD(std::vector<Sample>, searchByName, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsId, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsName, (const std::string&), (const, override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockShipmentView : public IShipmentView {

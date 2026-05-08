@@ -32,6 +32,7 @@ public:
     MOCK_METHOD(ProductionState, getState, (), (const, override));
     MOCK_METHOD(void, setState, (const ProductionState&), (override));
     MOCK_METHOD(void, enqueue, (const ProductionJob&), (override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockSampleRepository : public ISampleRepository {
@@ -43,6 +44,7 @@ public:
     MOCK_METHOD(std::vector<Sample>, searchByName, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsId, (const std::string&), (const, override));
     MOCK_METHOD(bool, existsName, (const std::string&), (const, override));
+    MOCK_METHOD(void, clearAll, (), (override));
 };
 
 class MockProductionLineView : public IProductionLineView {

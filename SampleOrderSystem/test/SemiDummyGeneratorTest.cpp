@@ -16,6 +16,7 @@
 #include <unordered_set>
 #include <cmath>
 #include <algorithm>
+#include <memory>
 
 namespace fs = std::filesystem;
 
@@ -29,6 +30,11 @@ protected:
     std::string orderFile;
     std::string productionFile;
 
+    std::unique_ptr<JsonSampleRepository>     sampleRepo_;
+    std::unique_ptr<JsonOrderRepository>      orderRepo_;
+    std::unique_ptr<JsonProductionRepository> productionRepo_;
+    std::unique_ptr<SemiDummyGenerator>       gen_;
+
     void SetUp() override {
         auto* info = ::testing::UnitTest::GetInstance()->current_test_info();
         std::string prefix = std::string("test_dummy_") + info->name() + "_";
@@ -40,6 +46,11 @@ protected:
         std::ofstream(sampleFile)     << "{\"samples\":[]}";
         std::ofstream(orderFile)      << "{\"nextOrdNum\":1,\"orders\":[]}";
         std::ofstream(productionFile) << "{\"activeJob\":null,\"queue\":[]}";
+
+        sampleRepo_     = std::make_unique<JsonSampleRepository>(sampleFile);
+        orderRepo_      = std::make_unique<JsonOrderRepository>(orderFile);
+        productionRepo_ = std::make_unique<JsonProductionRepository>(productionFile);
+        gen_            = std::make_unique<SemiDummyGenerator>(*sampleRepo_, *orderRepo_, *productionRepo_);
     }
 
     void TearDown() override {
@@ -70,12 +81,7 @@ protected:
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_GeneratesSamples_CountInRange)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto samples = loadSamples();
     int count = static_cast<int>(samples.size());
@@ -89,12 +95,7 @@ TEST_F(SemiDummyGeneratorTest, Run_GeneratesSamples_CountInRange)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_Samples_YieldRateValid)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto samples = loadSamples();
     ASSERT_FALSE(samples.empty()) << "시료가 1개 이상이어야 한다.";
@@ -112,12 +113,7 @@ TEST_F(SemiDummyGeneratorTest, Run_Samples_YieldRateValid)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_Samples_AvgProductionTimeValid)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto samples = loadSamples();
     ASSERT_FALSE(samples.empty()) << "시료가 1개 이상이어야 한다.";
@@ -133,12 +129,7 @@ TEST_F(SemiDummyGeneratorTest, Run_Samples_AvgProductionTimeValid)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_GeneratesOrders_CountInRange)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto orders = loadOrders();
     int count = static_cast<int>(orders.size());
@@ -152,12 +143,7 @@ TEST_F(SemiDummyGeneratorTest, Run_GeneratesOrders_CountInRange)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_Orders_SampleIdExists)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto samples = loadSamples();
     auto orders  = loadOrders();
@@ -183,12 +169,7 @@ TEST_F(SemiDummyGeneratorTest, Run_Orders_SampleIdExists)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_ProducingOrders_LinkedToProduction)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto orders = loadOrders();
     auto state  = loadProductionState();
@@ -250,12 +231,7 @@ TEST_F(SemiDummyGeneratorTest, Run_ProducingOrders_LinkedToProduction)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_ProducingOrders_ProductionQtyCalculation)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto samples = loadSamples();
     auto orders  = loadOrders();
@@ -317,12 +293,7 @@ TEST_F(SemiDummyGeneratorTest, Run_ProducingOrders_ProductionQtyCalculation)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_QueueFifoOrder)
 {
-    JsonSampleRepository     sampleRepo(sampleFile);
-    JsonOrderRepository      orderRepo(orderFile);
-    JsonProductionRepository productionRepo(productionFile);
-
-    SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-    gen.run(false);
+    gen_->run(false);
 
     auto orders = loadOrders();
     auto state  = loadProductionState();
@@ -367,17 +338,12 @@ TEST_F(SemiDummyGeneratorTest, Run_QueueFifoOrder)
 // -----------------------------------------------------------------------
 TEST_F(SemiDummyGeneratorTest, Run_Append_AddsToExisting)
 {
-    JsonSampleRepository     sampleRepo1(sampleFile);
-    JsonOrderRepository      orderRepo1(orderFile);
-    JsonProductionRepository productionRepo1(productionFile);
-
-    SemiDummyGenerator gen1(sampleRepo1, orderRepo1, productionRepo1);
-    gen1.run(false);
+    gen_->run(false);
 
     int firstRunSampleCount = static_cast<int>(loadSamples().size());
     int firstRunOrderCount  = static_cast<int>(loadOrders().size());
 
-    // 두 번째 run: append 모드
+    // 두 번째 run: append 모드 (별도 Repository 인스턴스로 파일 재로드)
     JsonSampleRepository     sampleRepo2(sampleFile);
     JsonOrderRepository      orderRepo2(orderFile);
     JsonProductionRepository productionRepo2(productionFile);
@@ -401,21 +367,13 @@ TEST_F(SemiDummyGeneratorTest, Run_Append_AddsToExisting)
 TEST_F(SemiDummyGeneratorTest, Run_NotAppend_OverwritesExisting)
 {
     // 첫 번째 run
-    {
-        JsonSampleRepository     sampleRepo(sampleFile);
-        JsonOrderRepository      orderRepo(orderFile);
-        JsonProductionRepository productionRepo(productionFile);
-
-        SemiDummyGenerator gen(sampleRepo, orderRepo, productionRepo);
-        gen.run(false);
-    }
+    gen_->run(false);
 
     int firstRunOrderCount = static_cast<int>(loadOrders().size());
     EXPECT_GE(firstRunOrderCount, 10) << "첫 번째 run 후 주문 수는 10개 이상이어야 한다.";
 
-    // 두 번째 run (덮어쓰기)
+    // 두 번째 run (덮어쓰기): 별도 Repository 인스턴스로 새로 로드
     {
-        // 새 Repository 인스턴스로 새로 로드
         JsonSampleRepository     sampleRepo(sampleFile);
         JsonOrderRepository      orderRepo(orderFile);
         JsonProductionRepository productionRepo(productionFile);

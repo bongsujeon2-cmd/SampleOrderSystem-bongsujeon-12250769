@@ -2,16 +2,16 @@
 // BR-01~BR-18 비즈니스 규칙을 준수하는 시나리오 기반 더미 데이터 생성기 구현.
 
 #include "SemiDummyGenerator.h"
-#include "../Model/Repository/JsonSampleRepository.h"
-#include "../Model/Repository/JsonOrderRepository.h"
-#include "../Model/Repository/JsonProductionRepository.h"
+#include "../Model/Service/TimeUtils.h"
 
 #include <iostream>
 #include <sstream>
 #include <iomanip>
 #include <cmath>
 #include <ctime>
+#include <cassert>
 #include <algorithm>
+#include <unordered_map>
 
 // -----------------------------------------------------------------------
 // 상수
@@ -90,7 +90,7 @@ std::vector<Order> SemiDummyGenerator::generateOrders(const std::vector<Sample>&
         Order o;
         o.sampleId    = sample.id;
         o.customerName = kCustomerNames[i % kCustomerNames.size()];
-        o.createdAt   = "2026-05-08T10:00:00";
+        o.createdAt   = TimeUtils::toIso8601(std::time(nullptr));
 
         // 상태 비율: i%10 < 2 → RESERVED, i%10 < 5 → PRODUCING, 나머지 → CONFIRMED
         if (i % 10 < 2) {
@@ -113,6 +113,30 @@ std::vector<Order> SemiDummyGenerator::generateOrders(const std::vector<Sample>&
         orders.push_back(o);
     }
     return orders;
+}
+
+// -----------------------------------------------------------------------
+// buildJob() — ProductionJob 생성 헬퍼 (BR-06, BR-07)
+// -----------------------------------------------------------------------
+
+ProductionJob SemiDummyGenerator::buildJob(const Order& o, const Sample& sample) const {
+    int shortage = o.quantity - sample.currentStock;
+    assert(shortage >= 1 && "PRODUCING 주문의 shortage >= 1 이어야 합니다 (BR-05)");
+
+    // BR-06: actualProductionQty = ceil(shortage / (yieldRate * 0.9))
+    // epsilon guard(1e-9)로 부동소수점 오차 방지
+    int actualQty = static_cast<int>(
+        std::ceil(static_cast<double>(shortage) / (sample.yieldRate * 0.9 - 1e-9))
+    );
+    // BR-07: totalProductionTimeMin = avgProductionTime * actualQty
+    ProductionJob job;
+    job.orderId                = o.id;
+    job.sampleId               = o.sampleId;
+    job.shortage               = shortage;
+    job.actualProductionQty    = actualQty;
+    job.totalProductionTimeMin = sample.avgProductionTime * actualQty;
+    job.startTimeUnix          = 0;
+    return job;
 }
 
 // -----------------------------------------------------------------------
@@ -155,24 +179,10 @@ void SemiDummyGenerator::generateProduction(
         const Order& o = producingOrders[0];
         const Sample& sample = sampleMap.at(o.sampleId);
 
-        int shortage = o.quantity - sample.currentStock;
-        if (shortage < 1) shortage = 1;
-
-        // BR-06: actualProductionQty = ceil(shortage / (yieldRate * 0.9))
-        int actualQty = static_cast<int>(
-            std::ceil(static_cast<double>(shortage) / (sample.yieldRate * 0.9))
-        );
-        // BR-07: totalProductionTimeMin = avgProductionTime * actualQty
-        int totalMin = sample.avgProductionTime * actualQty;
-
-        ProductionJob job;
-        job.orderId                = o.id;
-        job.sampleId               = o.sampleId;
-        job.shortage               = shortage;
-        job.actualProductionQty    = actualQty;
-        job.totalProductionTimeMin = totalMin;
+        ProductionJob job = buildJob(o, sample);
         // startTimeUnix: 현재 - (totalMin/2 * 60) → 아직 미완료
-        job.startTimeUnix = static_cast<int64_t>(now) - static_cast<int64_t>(totalMin / 2) * 60;
+        // 참고: totalMin/2 정수 절사로 실제 경과 시간이 약간 짧게 설정되어 미완료 보장에 충분한 여유가 있음
+        job.startTimeUnix = static_cast<int64_t>(now) - static_cast<int64_t>(job.totalProductionTimeMin / 2) * 60;
 
         state.activeJob = job;
     }
@@ -182,23 +192,7 @@ void SemiDummyGenerator::generateProduction(
         const Order& o = producingOrders[idx];
         const Sample& sample = sampleMap.at(o.sampleId);
 
-        int shortage = o.quantity - sample.currentStock;
-        if (shortage < 1) shortage = 1;
-
-        int actualQty = static_cast<int>(
-            std::ceil(static_cast<double>(shortage) / (sample.yieldRate * 0.9))
-        );
-        int totalMin = sample.avgProductionTime * actualQty;
-
-        ProductionJob job;
-        job.orderId                = o.id;
-        job.sampleId               = o.sampleId;
-        job.shortage               = shortage;
-        job.actualProductionQty    = actualQty;
-        job.totalProductionTimeMin = totalMin;
-        job.startTimeUnix          = 0;  // 대기 중
-
-        state.queue.push_back(job);
+        state.queue.push_back(buildJob(o, sample));
     }
 
     productionRepo_.setState(state);
@@ -210,20 +204,10 @@ void SemiDummyGenerator::generateProduction(
 
 int SemiDummyGenerator::run(bool append) {
     if (!append) {
-        // 덮어쓰기 모드: 기존 데이터 초기화
-        // JsonRepository 구현체에 dynamic_cast하여 clearAll() 호출
-        auto* jsr = dynamic_cast<JsonSampleRepository*>(&sampleRepo_);
-        auto* jor = dynamic_cast<JsonOrderRepository*>(&orderRepo_);
-        auto* jpr = dynamic_cast<JsonProductionRepository*>(&productionRepo_);
-
-        if (jsr) jsr->clearAll();
-        if (jor) jor->clearAll();
-        if (jpr) jpr->clearAll();
-
-        if (!jsr || !jor || !jpr) {
-            std::cout << "[경고] JSON Repository가 아닌 구현체가 감지되었습니다. "
-                      << "기존 데이터는 유지됩니다. 덮어쓰기하려면 파일을 직접 초기화하세요.\n";
-        }
+        // 덮어쓰기 모드: 기존 데이터 초기화 (DIP 준수 — 인터페이스 메서드 직접 호출)
+        sampleRepo_.clearAll();
+        orderRepo_.clearAll();
+        productionRepo_.clearAll();
     }
 
     std::cout << "[SemiDummyGenerator] 더미 데이터 생성 시작...\n";

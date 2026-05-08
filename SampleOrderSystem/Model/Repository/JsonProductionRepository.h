@@ -33,7 +33,7 @@ public:
 
     // Repository 스토어를 완전히 초기화하고 빈 파일로 저장.
     // SemiDummyGenerator의 run(false=덮어쓰기) 시나리오에서 사용.
-    void clearAll() {
+    void clearAll() override {
         state_.activeJob = std::nullopt;
         state_.queue.clear();
         flush();

@@ -22,6 +22,7 @@ private:
     std::vector<Order>     generateOrders(const std::vector<Sample>& samples);
     void generateProduction(const std::vector<Order>& orders,
                             const std::vector<Sample>& samples);
+    ProductionJob buildJob(const Order& o, const Sample& sample) const;
 
     template<typename T>
     T randInt(T lo, T hi) {

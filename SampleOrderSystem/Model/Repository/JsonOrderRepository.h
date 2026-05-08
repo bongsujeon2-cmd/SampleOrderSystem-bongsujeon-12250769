@@ -56,7 +56,7 @@ public:
 
     // Repository 스토어를 완전히 초기화하고 빈 파일로 저장.
     // SemiDummyGenerator의 run(false=덮어쓰기) 시나리오에서 사용.
-    void clearAll() {
+    void clearAll() override {
         store_.clear();
         nextOrdNum_ = 1;
         flush();
@@ -91,7 +91,7 @@ private:
         }
     }
 
-    // flush()는 non-const メンバを変更しないが、設計上 mutable 化せず const のまま維持
+    // flush()는 non-const 멤버를 변경하지 않으나, 설계상 mutable화 없이 const로 유지
     bool flush() const {
         JsonValue root;
         root["nextOrdNum"] = JsonValue(nextOrdNum_);

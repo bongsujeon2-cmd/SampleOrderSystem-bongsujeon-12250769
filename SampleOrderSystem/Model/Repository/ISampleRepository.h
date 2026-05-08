@@ -14,4 +14,5 @@ public:
     virtual std::vector<Sample>   searchByName(const std::string& keyword) const = 0;
     virtual bool                  existsId(const std::string& id) const = 0;
     virtual bool                  existsName(const std::string& name) const = 0;
+    virtual void                  clearAll() = 0;
 };
