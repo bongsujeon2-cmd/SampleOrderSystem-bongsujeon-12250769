@@ -45,6 +45,8 @@ public:
 
 class MockProductionRepository : public IProductionRepository {
 public:
+    MOCK_METHOD(ProductionState, getState, (), (const, override));
+    MOCK_METHOD(void, setState, (const ProductionState&), (override));
     MOCK_METHOD(void, enqueue, (const ProductionJob&), (override));
 };
 

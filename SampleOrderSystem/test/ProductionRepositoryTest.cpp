@@ -102,53 +102,59 @@ TEST_F(ProductionRepositoryTest, Enqueue_TwoJobs_FifoOrder)
 }
 
 // -----------------------------------------------------------------------
-// TC-04: activeJob 있는 ProductionState 저장 후 getState()로 모든 필드 검증
+// TC-04: activeJob 있는 ProductionState 저장 후 재생성으로 모든 필드 검증 (파일 I/O 검증)
 // -----------------------------------------------------------------------
 TEST_F(ProductionRepositoryTest, SetState_WithActiveJob_GetStateReturnsIt)
 {
-    ProductionJob job = makeJob("ORD-010", "S-042", 3, 8, 40, 1746700000LL);
-
-    ProductionState stateToSave;
-    stateToSave.activeJob = job;
-
-    JsonProductionRepository repo(tempFilePath);
-    repo.setState(stateToSave);
-
-    ProductionState loaded = repo.getState();
-    ASSERT_TRUE(loaded.activeJob.has_value());
-    const ProductionJob& a = loaded.activeJob.value();
-    EXPECT_EQ(a.orderId,                "ORD-010");
-    EXPECT_EQ(a.sampleId,               "S-042");
-    EXPECT_EQ(a.shortage,               3);
-    EXPECT_EQ(a.actualProductionQty,    8);
-    EXPECT_EQ(a.totalProductionTimeMin, 40);
-    EXPECT_EQ(a.startTimeUnix,          1746700000LL);
+    // 저장 후 재생성으로 파일 경로 검증
+    {
+        JsonProductionRepository repo(tempFilePath);
+        ProductionState s;
+        s.activeJob = makeJob("ORD-010", "S-042", 3, 8, 40, 1746700000LL);
+        repo.setState(s);
+    }
+    {
+        JsonProductionRepository repo(tempFilePath);
+        ProductionState loaded = repo.getState();
+        ASSERT_TRUE(loaded.activeJob.has_value());
+        const ProductionJob& a = loaded.activeJob.value();
+        EXPECT_EQ(a.orderId,                "ORD-010");
+        EXPECT_EQ(a.sampleId,               "S-042");
+        EXPECT_EQ(a.shortage,               3);
+        EXPECT_EQ(a.actualProductionQty,    8);
+        EXPECT_EQ(a.totalProductionTimeMin, 40);
+        EXPECT_EQ(a.startTimeUnix,          1746700000LL);
+    }
 }
 
 // -----------------------------------------------------------------------
-// TC-05: queue 2개 저장 후 재조회 시 동일 데이터
+// TC-05: queue 2개 저장 후 재생성으로 동일 데이터 검증 (파일 I/O 검증)
 // -----------------------------------------------------------------------
 TEST_F(ProductionRepositoryTest, SetState_WithQueue_GetStateReturnsQueue)
 {
-    ProductionState stateToSave;
-    stateToSave.queue.push_back(makeJob("ORD-001", "S-001", 5, 7, 35, 0));
-    stateToSave.queue.push_back(makeJob("ORD-002", "S-002", 2, 4, 20, 100));
-
-    JsonProductionRepository repo(tempFilePath);
-    repo.setState(stateToSave);
-
-    ProductionState loaded = repo.getState();
-    ASSERT_EQ(loaded.queue.size(), 2u);
-    EXPECT_EQ(loaded.queue[0].orderId,                "ORD-001");
-    EXPECT_EQ(loaded.queue[0].sampleId,               "S-001");
-    EXPECT_EQ(loaded.queue[0].shortage,               5);
-    EXPECT_EQ(loaded.queue[0].actualProductionQty,    7);
-    EXPECT_EQ(loaded.queue[0].totalProductionTimeMin, 35);
-    EXPECT_EQ(loaded.queue[1].orderId,                "ORD-002");
-    EXPECT_EQ(loaded.queue[1].sampleId,               "S-002");
-    EXPECT_EQ(loaded.queue[1].shortage,               2);
-    EXPECT_EQ(loaded.queue[1].actualProductionQty,    4);
-    EXPECT_EQ(loaded.queue[1].totalProductionTimeMin, 20);
+    // 저장 후 재생성으로 파일 경로 검증
+    {
+        JsonProductionRepository repo(tempFilePath);
+        ProductionState stateToSave;
+        stateToSave.queue.push_back(makeJob("ORD-001", "S-001", 5, 7, 35, 0));
+        stateToSave.queue.push_back(makeJob("ORD-002", "S-002", 2, 4, 20, 100));
+        repo.setState(stateToSave);
+    }
+    {
+        JsonProductionRepository repo(tempFilePath);
+        ProductionState loaded = repo.getState();
+        ASSERT_EQ(loaded.queue.size(), 2u);
+        EXPECT_EQ(loaded.queue[0].orderId,                "ORD-001");
+        EXPECT_EQ(loaded.queue[0].sampleId,               "S-001");
+        EXPECT_EQ(loaded.queue[0].shortage,               5);
+        EXPECT_EQ(loaded.queue[0].actualProductionQty,    7);
+        EXPECT_EQ(loaded.queue[0].totalProductionTimeMin, 35);
+        EXPECT_EQ(loaded.queue[1].orderId,                "ORD-002");
+        EXPECT_EQ(loaded.queue[1].sampleId,               "S-002");
+        EXPECT_EQ(loaded.queue[1].shortage,               2);
+        EXPECT_EQ(loaded.queue[1].actualProductionQty,    4);
+        EXPECT_EQ(loaded.queue[1].totalProductionTimeMin, 20);
+    }
 }
 
 // -----------------------------------------------------------------------

@@ -3,6 +3,7 @@
 #include "../../json.hpp"
 #include <string>
 #include <deque>
+#include <stdexcept>
 
 class JsonProductionRepository : public IProductionRepository {
 public:
@@ -12,18 +13,22 @@ public:
         load();
     }
 
-    ProductionState getState() const {
+    ProductionState getState() const override {
         return state_;
     }
 
-    void setState(const ProductionState& state) {
+    void setState(const ProductionState& state) override {
         state_ = state;
-        flush();
+        if (!flush()) {
+            throw std::runtime_error("프로덕션 상태 저장 실패");
+        }
     }
 
     void enqueue(const ProductionJob& job) override {
         state_.queue.push_back(job);
-        setState(state_);
+        if (!flush()) {
+            throw std::runtime_error("프로덕션 상태 저장 실패");
+        }
     }
 
 private:
@@ -51,7 +56,7 @@ private:
         }
     }
 
-    void flush() const {
+    bool flush() const {
         JsonValue root;
 
         // activeJob
@@ -68,7 +73,7 @@ private:
         }
         root["queue"] = arr;
 
-        root.saveToFile(filePath_);
+        return root.saveToFile(filePath_);
     }
 
     static JsonValue jobToJson(const ProductionJob& job) {

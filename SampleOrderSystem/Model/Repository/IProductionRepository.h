@@ -4,5 +4,7 @@
 class IProductionRepository {
 public:
     virtual ~IProductionRepository() = default;
-    virtual void enqueue(const ProductionJob& job) = 0;
+    virtual ProductionState getState() const = 0;
+    virtual void            setState(const ProductionState& state) = 0;
+    virtual void            enqueue(const ProductionJob& job) = 0;
 };

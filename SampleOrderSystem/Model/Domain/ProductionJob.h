@@ -16,10 +16,13 @@ struct ProductionJob {
         return orderId == o.orderId && sampleId == o.sampleId
             && shortage == o.shortage
             && actualProductionQty == o.actualProductionQty
-            && totalProductionTimeMin == o.totalProductionTimeMin;
+            && totalProductionTimeMin == o.totalProductionTimeMin
+            && startTimeUnix == o.startTimeUnix;
     }
 };
 
+// ProductionState는 Repository 계층에서 사용하는 집계 구조체.
+// 도메인 레이어(ProductionJob)와 함께 배치하되, 영속성 레이어의 관심사임을 명시한다.
 struct ProductionState {
     std::optional<ProductionJob> activeJob;
     std::deque<ProductionJob>    queue;
