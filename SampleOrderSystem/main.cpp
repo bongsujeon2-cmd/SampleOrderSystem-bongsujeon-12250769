@@ -13,6 +13,7 @@
 
 // Tools
 #include "Tools/DataMonitorTool.h"
+#include "Tools/SemiDummyGenerator.h"
 
 // Service
 #include "Model/Service/RealTimeProvider.h"
@@ -55,6 +56,15 @@ int main(int argc, char* argv[]) {
 
     // data/ 디렉토리 보장 (공통)
     fs::create_directories("data");
+
+    // --gen-dummy: 더미 데이터 생성
+    if (hasArg(argc, argv, "--gen-dummy")) {
+        bool append = hasArg(argc, argv, "--append");
+        JsonSampleRepository     sampleRepo("data/samples.json");
+        JsonOrderRepository      orderRepo("data/orders.json");
+        JsonProductionRepository productionRepo("data/production.json");
+        return SemiDummyGenerator(sampleRepo, orderRepo, productionRepo).run(append);
+    }
 
     // --dump-data: JSON 데이터 파일 내용 출력
     if (hasArg(argc, argv, "--dump-data")) {

@@ -135,6 +135,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tools\DataMonitorTool.cpp" />
+    <ClCompile Include="Tools\SemiDummyGenerator.cpp" />
     <ClCompile Include="Controller\AppController.cpp" />
     <ClCompile Include="Controller\SampleController.cpp" />
     <ClCompile Include="Controller\OrderController.cpp" />
@@ -163,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Tools\DataMonitorTool.h" />
+    <ClInclude Include="Tools\SemiDummyGenerator.h" />
     <ClInclude Include="Controller\ISubController.h" />
     <ClInclude Include="Controller\AppController.h" />
     <ClInclude Include="Controller\SampleController.h" />
