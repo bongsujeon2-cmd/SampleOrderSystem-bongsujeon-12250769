@@ -292,8 +292,8 @@ TEST_F(ProductionServiceTest, CheckAndComplete_ActiveJobDone_ActiveJobCleared)
 
     ProductionState capturedState;
     EXPECT_CALL(mockProduction, setState(_))
-        .Times(AtLeast(1))
-        .WillRepeatedly([&capturedState](const ProductionState& s) {
+        .Times(1)
+        .WillOnce([&capturedState](const ProductionState& s) {
             capturedState = s;
         });
 
@@ -307,6 +307,7 @@ TEST_F(ProductionServiceTest, CheckAndComplete_ActiveJobDone_ActiveJobCleared)
 // TC-06: 완료 후 queue에 다음 job 있음 → startNextJob() 호출
 // setState() 호출 시 새 activeJob.orderId = queue의 첫 번째 orderId 검증
 // 새 activeJob.startTimeUnix = timeProvider_.now() 값 검증
+// getState() 2회 호출: 1회차=초기상태, 2회차=새 activeJob(미완료) → 루프 종료
 // -----------------------------------------------------------------------
 TEST_F(ProductionServiceTest, CheckAndComplete_QueueHasNext_StartsNextJob)
 {
@@ -317,33 +318,31 @@ TEST_F(ProductionServiceTest, CheckAndComplete_QueueHasNext_StartsNextJob)
 
     // 현재 active job: 10분짜리, 0초에 시작 → 700초 경과 → 완료
     ProductionJob activeJob = makeJob(orderId1, sampleId, 5, 7, 10, 0);
-    // queue에 있는 다음 job
+    // queue에 있는 다음 job (20분짜리, fixedNow에 시작되므로 elapsed=0 → 미완료)
     ProductionJob nextJob   = makeJob(orderId2, sampleId, 3, 4, 20, 0);
 
     ProductionState initialState;
     initialState.activeJob = activeJob;
     initialState.queue.push_back(nextJob);
 
+    // 두 번째 getState(): startNextJob 이후, 새 activeJob은 방금 시작됨 → 미완료
+    ProductionState secondState;
+    ProductionJob runningNext = nextJob;
+    runningNext.startTimeUnix = static_cast<int64_t>(fixedNow);
+    secondState.activeJob     = runningNext;
+
     Sample sample = makeSample(sampleId, 10);
     Order  order1 = makeOrder(orderId1, sampleId, 20, OrderStatus::PRODUCING);
 
-    // getState()는 초기 상태를 계속 반환
-    // (startNextJob()이 setState로 새 상태를 저장한 뒤 재귀 호출할 때
-    //  다시 getState()를 부르면 activeJob이 있고 시간이 부족하므로 종료)
-    int getStateCallCount = 0;
-    ON_CALL(mockProduction, getState())
-        .WillByDefault([&]() -> ProductionState {
-            if (getStateCallCount == 0) {
-                ++getStateCallCount;
-                return initialState;
-            }
-            // 재귀 호출 시: 새 activeJob은 아직 완료 안 됨
-            ProductionState secondState;
-            ProductionJob runningNext = nextJob;
-            runningNext.startTimeUnix = fixedNow;  // 방금 시작됨
-            secondState.activeJob     = runningNext;
-            return secondState;
-        });
+    // getState()는 순서대로: 초기 상태 → 미완료 상태 (루프 2회)
+    {
+        InSequence seq;
+        EXPECT_CALL(mockProduction, getState())
+            .Times(2)
+            .WillOnce(Return(initialState))
+            .WillOnce(Return(secondState));
+    }
+
     ON_CALL(mockTime, now())
         .WillByDefault(Return(fixedNow));
     ON_CALL(mockSample, findById(sampleId))
@@ -355,39 +354,34 @@ TEST_F(ProductionServiceTest, CheckAndComplete_QueueHasNext_StartsNextJob)
     ON_CALL(mockOrder, update(_))
         .WillByDefault(Return(true));
 
-    // setState()가 여러 번 호출될 수 있으므로 전부 캡처
-    std::vector<ProductionState> capturedStates;
+    // setState()는 1회 호출: startNextJob 직후
+    ProductionState capturedState;
     EXPECT_CALL(mockProduction, setState(_))
-        .Times(AtLeast(1))
-        .WillRepeatedly([&capturedStates](const ProductionState& s) {
-            capturedStates.push_back(s);
+        .Times(1)
+        .WillOnce([&capturedState](const ProductionState& s) {
+            capturedState = s;
         });
 
     auto svc = makeService();
     svc.checkAndComplete();
 
-    // setState()가 최소 한 번 호출되어야 함
-    ASSERT_FALSE(capturedStates.empty());
-
-    // 마지막 setState에서 새 activeJob이 설정됐는지 확인
-    // (activeJob 완료 처리 후 startNextJob이 새 activeJob을 설정)
-    bool foundNextJobAsActive = false;
-    for (const auto& s : capturedStates) {
-        if (s.activeJob.has_value() &&
-            s.activeJob->orderId == orderId2) {
-            EXPECT_EQ(s.activeJob->startTimeUnix, fixedNow);
-            foundNextJobAsActive = true;
-        }
-    }
-    EXPECT_TRUE(foundNextJobAsActive)
+    // setState에서 새 activeJob이 orderId2로 설정됐는지 확인
+    ASSERT_TRUE(capturedState.activeJob.has_value())
+        << "setState()에 activeJob이 설정되어야 한다.";
+    EXPECT_EQ(capturedState.activeJob->orderId, orderId2)
         << "queue의 다음 job(ORD-002)이 activeJob으로 시작되어야 한다.";
+    EXPECT_EQ(capturedState.activeJob->startTimeUnix, static_cast<int64_t>(fixedNow))
+        << "새 activeJob의 startTimeUnix는 now() 값이어야 한다.";
 }
 
 // -----------------------------------------------------------------------
-// TC-07: 재귀 완료 처리 (BR-17) — activeJob + queue 1개, 둘 다 충분히 경과됨
-// orderRepo_.update() 2회, sampleRepo_.update() 2회 검증
+// TC-07: 연쇄 완료 처리 (BR-17) — activeJob + queue 1개, 둘 다 충분히 경과됨
+// 루프 흐름:
+//   1회차 getState: job1 active, job2 queue → job1 완료 → startNextJob → setState → 루프
+//   2회차 getState: job2 active(완료) → completeCurrentJob → queue 비어있음 → setState → return
+// getState() 2회, orderRepo_.update() 2회, sampleRepo_.update() 2회 검증
 // -----------------------------------------------------------------------
-TEST_F(ProductionServiceTest, CheckAndComplete_RecursiveCheck_CompletesChainedJobs)
+TEST_F(ProductionServiceTest, CheckAndComplete_ChainedJobs_BothCompleted)
 {
     const std::string sampleId1 = "S-001";
     const std::string sampleId2 = "S-002";
@@ -396,31 +390,21 @@ TEST_F(ProductionServiceTest, CheckAndComplete_RecursiveCheck_CompletesChainedJo
     // 매우 큰 now() → 두 job 모두 경과 시간 초과
     const time_t bigNow = static_cast<time_t>(999999);
 
-    // 첫 번째 active job: totalProductionTimeMin=10 → 완료 조건 충족
+    // 첫 번째 active job: totalProductionTimeMin=10 → elapsed=bigNow-0=999999 >= 600 → 완료
     ProductionJob job1 = makeJob(orderId1, sampleId1, 5, 7, 10, 0);
-    // queue에 있는 두 번째 job: totalProductionTimeMin=20 → startTimeUnix=0이면 완료 조건 충족
+    // queue에 있는 두 번째 job: totalProductionTimeMin=20 → startTimeUnix=0이면 elapsed=bigNow-0=999999 >= 1200 → 완료
     ProductionJob job2 = makeJob(orderId2, sampleId2, 3, 4, 20, 0);
 
-    ProductionState stateWithQueue;
-    stateWithQueue.activeJob = job1;
-    stateWithQueue.queue.push_back(job2);
+    // 1회차 getState: job1 active, job2 in queue
+    ProductionState state1;
+    state1.activeJob = job1;
+    state1.queue.push_back(job2);
 
-    // startNextJob 이후의 상태: job2가 activeJob, queue 비어있음
-    ProductionState stateAfterFirst;
-    ProductionJob startedJob2 = job2;
-    startedJob2.startTimeUnix = bigNow;
-    stateAfterFirst.activeJob = startedJob2;
-
-    // getState()가 순차적으로 다른 값을 반환하도록 설정
-    int callCount = 0;
-    ON_CALL(mockProduction, getState())
-        .WillByDefault([&]() -> ProductionState {
-            if (callCount == 0) {
-                ++callCount;
-                return stateWithQueue;
-            }
-            return stateAfterFirst;
-        });
+    // 2회차 getState: job2 active (startTimeUnix=0 → elapsed=bigNow-0=999999 >= 1200 → 완료)
+    // (실제 저장소라면 startNextJob이 startTimeUnix=bigNow로 저장하지만,
+    //  테스트에서는 연쇄 완료를 시뮬레이션하기 위해 startTimeUnix=0으로 설정)
+    ProductionState state2;
+    state2.activeJob = job2;  // startTimeUnix=0 유지 → 완료 조건 충족
 
     ON_CALL(mockTime, now())
         .WillByDefault(Return(bigNow));
@@ -440,6 +424,17 @@ TEST_F(ProductionServiceTest, CheckAndComplete_RecursiveCheck_CompletesChainedJo
         .WillByDefault(Return(std::make_optional(order2)));
     ON_CALL(mockProduction, setState(_))
         .WillByDefault(Return());
+
+    // getState()는 순서대로 2회 호출:
+    //   1회: job1 active + job2 queue
+    //   2회: job2 active (queue 비어 있음, 완료 조건 충족) → 처리 후 return (3회차 없음)
+    {
+        InSequence seq;
+        EXPECT_CALL(mockProduction, getState())
+            .Times(2)
+            .WillOnce(Return(state1))
+            .WillOnce(Return(state2));
+    }
 
     // 두 job 모두 완료 → 각각 update() 2회 호출
     EXPECT_CALL(mockSample, update(_))

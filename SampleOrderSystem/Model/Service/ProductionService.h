@@ -15,5 +15,7 @@ private:
     IProductionRepository& productionRepo_;
     ITimeProvider&         timeProvider_;
 
-    void checkAndCompleteInternal(ProductionState state);
+    bool isJobComplete(const ProductionJob& job) const;
+    void completeCurrentJob(ProductionState& state);
+    void startNextJob(ProductionState& state);
 };

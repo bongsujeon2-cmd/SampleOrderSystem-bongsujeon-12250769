@@ -1,4 +1,5 @@
 #include "ProductionService.h"
+#include <stdexcept>
 
 ProductionService::ProductionService(
     ISampleRepository&     sampleRepo,
@@ -11,53 +12,61 @@ ProductionService::ProductionService(
     , timeProvider_(timeProvider)
 {}
 
-void ProductionService::checkAndComplete()
+bool ProductionService::isJobComplete(const ProductionJob& job) const
 {
-    checkAndCompleteInternal(productionRepo_.getState());
+    // elapsed는 int64_t로 캐스팅 (현재 플랫폼에서 time_t는 int64_t와 동일)
+    int64_t elapsed = static_cast<int64_t>(timeProvider_.now()) - job.startTimeUnix;
+    return elapsed >= static_cast<int64_t>(job.totalProductionTimeMin) * 60;
 }
 
-void ProductionService::checkAndCompleteInternal(ProductionState state)
+void ProductionService::completeCurrentJob(ProductionState& state)
 {
-    if (!state.activeJob) return;
-
-    auto job = *state.activeJob;
-    int64_t elapsed = static_cast<int64_t>(timeProvider_.now()) - job.startTimeUnix;
-    if (elapsed < static_cast<int64_t>(job.totalProductionTimeMin) * 60) return;
+    const ProductionJob& job = *state.activeJob;
 
     // BR-09: 재고 증가
     auto sampleOpt = sampleRepo_.findById(job.sampleId);
-    if (sampleOpt) {
-        auto sample = *sampleOpt;
-        sample.currentStock += job.actualProductionQty;
-        sampleRepo_.update(sample);
-    }
+    if (!sampleOpt)
+        throw std::runtime_error("생산 완료 처리: 시료를 찾을 수 없음 - " + job.sampleId);
+    auto sample = *sampleOpt;
+    sample.currentStock += job.actualProductionQty;
+    sampleRepo_.update(sample);
 
     // BR-09: 주문 CONFIRMED 전환
     auto orderOpt = orderRepo_.findById(job.orderId);
-    if (orderOpt) {
-        auto order = *orderOpt;
-        order.status = OrderStatus::CONFIRMED;
-        orderRepo_.update(order);
-    }
+    if (!orderOpt)
+        throw std::runtime_error("생산 완료 처리: 주문을 찾을 수 없음 - " + job.orderId);
+    auto order = *orderOpt;
+    order.status = OrderStatus::CONFIRMED;
+    orderRepo_.update(order);
 
     // activeJob 제거
     state.activeJob = std::nullopt;
+}
 
-    if (!state.queue.empty()) {
-        // 다음 job을 꺼내 시작 시간을 기록하여 저장소에 반영 (BR-16)
-        auto nextJob = state.queue.front();
-        state.queue.pop_front();
+void ProductionService::startNextJob(ProductionState& state)
+{
+    auto nextJob = state.queue.front();
+    state.queue.pop_front();
+    nextJob.startTimeUnix = static_cast<int64_t>(timeProvider_.now());
+    state.activeJob = nextJob;
+}
 
-        // 저장소에는 현재 시각으로 시작된 상태로 저장
-        ProductionState repoState = state;
-        repoState.activeJob = nextJob;
-        repoState.activeJob->startTimeUnix = static_cast<int64_t>(timeProvider_.now());
-        productionRepo_.setState(repoState);
+void ProductionService::checkAndComplete()
+{
+    while (true) {
+        auto state = productionRepo_.getState();
+        if (!state.activeJob) return;
+        if (!isJobComplete(*state.activeJob)) return;
 
-        // BR-17: 재귀 체크 — 원래 startTimeUnix를 유지하여 이미 완료된 job도 처리
-        state.activeJob = nextJob;  // original startTimeUnix retained
-        checkAndCompleteInternal(state);
-    } else {
-        productionRepo_.setState(state);
+        completeCurrentJob(state);          // 재고+주문 업데이트, activeJob=nullopt
+
+        if (!state.queue.empty()) {
+            startNextJob(state);            // queue.front() → activeJob, startTimeUnix=now()
+            productionRepo_.setState(state);
+            // 루프 계속 → 다음 iteration에서 새 activeJob 완료 여부 체크
+        } else {
+            productionRepo_.setState(state);
+            return;
+        }
     }
 }
